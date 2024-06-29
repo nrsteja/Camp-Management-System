@@ -1,4 +1,6 @@
 # Camp Management Application
+## Video Walkthrough
+https://youtu.be/5X2Aj6Evjow
 
 ## Project Overview
 This project explores the integration of object-oriented programming and design principles in creating a robust Camp Management application. The report outlines our methodology, highlights key test cases, and reflects our learning process throughout the development journey. Join us as we navigate building an Object-Oriented Application for effective camp management.
