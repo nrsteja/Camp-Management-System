@@ -1,0 +1,27 @@
+package CAMs;
+
+public class CsvReportGenerator implements ReportGenerator {
+    private Camp camp;
+
+    public CsvReportGenerator(Camp camp) {
+        this.camp = camp;
+    }
+
+    @Override
+    public void generateEnquiryReport() {
+        // Implement the logic for generating CSV Enquiry report
+        // Use camp information from this.camp
+    }
+
+    @Override
+    public void generatePerformanceReport() {
+        // Implement the logic for generating CSV Performance report
+        // Use camp information from this.camp
+    }
+
+    @Override
+    public void generateStudentAttendanceReport() {
+        // Implement the logic for generating CSV Student Attendance report
+        // Use camp information from this.camp
+    }
+}

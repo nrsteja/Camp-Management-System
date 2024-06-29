@@ -1,0 +1,7 @@
+package CAMs;
+
+public class AttendanceCsvReportFormatSelector implements AttendanceReportFormatSelector {
+	public void generateReport() {
+		System.out.println("Generating TXT report...");
+	}
+}

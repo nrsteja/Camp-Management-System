@@ -1,0 +1,129 @@
+package CAMs;
+
+import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+
+public class Staff extends User{
+	private static int numberOfCamps = 0;
+	private int points = 0;
+	private String name;
+	private String email;
+	private String faculty;
+	public CampDataManager campDataManager = new CampDataManager();
+	private List<Camp> campsCreated = new ArrayList<>();
+	private List<Query> suggestionInbox = new ArrayList<>();
+	
+	public Staff(String name, String email, Schools faculty) {
+		super(name, email, faculty);
+	}
+	public UserType getUserType() {return UserType.STAFF;}
+	
+	public void printMenu() {
+		System.out.println("**********STAFF LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camp Settings");
+		System.out.println("(3) Suggestions Inbox");
+		System.out.println("(4) Ongoing Camps");
+		System.out.println("(5) Logout");
+	}
+	public void CampSettings() {
+		System.out.println("**********CAMP SETTINGS*********");
+		System.out.println("(1) Create Camp");
+		System.out.println("(2) Edit Camp");
+		System.out.println("(3) Delete Camp");
+		System.out.println("(4) Camp Report Generation");
+		System.out.println("(5) Back");
+	}
+	
+	public Camp getCamp(int index) {
+		Camp camp = campsCreated.get(index);
+		return camp;
+	}
+	public List<Camp> getCreatedCamps() {
+		return campsCreated;
+	}
+	
+	public int getNumberOfCamps() {
+		return numberOfCamps;
+	}
+	
+	public void deleteCamp(Camp camp, CampDataManager campDataManager) {
+	    if (campsCreated.contains(camp)) {
+	        campsCreated.remove(camp);
+	        numberOfCamps--;
+	        campDataManager.deleteCamp(camp, this);
+	    }
+	}
+	
+	public void createCamp(Camp camp, CampDataManager campDataManager) {
+        this.campsCreated.add(camp);
+        campDataManager.addCamp(camp, this);
+        numberOfCamps++;
+    }
+	
+	public void removeFromCampsCreated(Camp camp) {
+        campsCreated.remove(camp);
+        numberOfCamps--;
+    }
+
+    public void viewAllCamps(List<Camp> allCamps) {
+        // View all camps
+    	allCamps = FilterVisibility.filterVisibility(allCamps);
+    	System.out.println("List of All Camps:");
+        if (allCamps.isEmpty()) {
+            System.out.println("No camps available.");
+        } else {
+        	int count = 1;
+            for (Camp camp : allCamps) {
+                System.out.println("(" + (count++) + ") " + camp.getCampName());
+            }
+        }
+    }
+    
+    public List<String> listCreatedCamps() {
+    	if (campsCreated.size() > 0) {
+    		List<String> campNames = new ArrayList<>();
+        	int count = 0;
+        	for(Camp camp : campsCreated) {
+    			campNames.add(camp.getCampName());
+    		}
+        	return campNames;
+    	    // The rest of your code for editing camps
+    	} else {
+    	    System.out.println("You haven't created any camps.");
+    	}
+    	return null;
+    }
+
+    public void viewCreatedCamps() {
+        // View the camps created by this staff
+    	if(numberOfCamps == 0)
+			System.out.println("Not created any Camps");
+		else {
+			int count = 1;
+			for(Camp camp : campsCreated) {
+				System.out.println("CAMP "+ (count++) + ":");
+				camp.campInfo();
+			}
+		}
+    }
+    
+    public List<Query> getSuggestionInbox() {
+        return suggestionInbox;
+    }
+    
+    public void addSuggestionToInbox(Query suggestion) {
+        suggestionInbox.add(suggestion);
+    }
+
+    public void removeSuggestionFromInbox(Query query) {
+    	suggestionInbox.remove(query);
+    }
+    
+}

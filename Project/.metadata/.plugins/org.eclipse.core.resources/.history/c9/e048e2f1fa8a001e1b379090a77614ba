@@ -1,0 +1,36 @@
+package CAMs;
+
+import java.util.List;
+
+public class StudentWithdrawal implements WithdrawFromCamps {
+	public void withdrawFromCamps(Student student) {
+    	RegistrationCamps registrationStudent = new StudentRegistrationCamps();
+	    List<Camp> registeredCamps = this.getRegisteredCamps();
+	    boolean checkRegisteredCamps = registrationStudent.viewCampRegistrationDetails(this); // Show registered camps
+	    if(checkRegisteredCamps) {
+		    System.out.println("Enter the number of the camp you want to withdraw from: ");
+		    int choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, registeredCamps.size());
+
+	        Camp selectedCamp = registeredCamps.get(choice - 1);
+	        if(this.isCampCommitteeMember(selectedCamp))
+	        	System.out.println("Sorry you cannot withdraw from the camp as you are a committee Member");
+	        else {
+	        	if (this.checkWithdrawFromCamp(selectedCamp)) {
+	            System.out.println("You have successfully withdrawn from the camp: " + selectedCamp.getCampName());
+	        	} 
+	        	else {
+	        		System.out.println("Withdrawal failed. Please try again.");
+	        	}
+	        }
+	    }
+    }
+	public boolean checkWithdrawFromCamp(Camp selectedCamp, Student student) {
+        if (student.isRegisteredForCamp(selectedCamp)) {
+        	student.removeRegisteredCamps(selectedCamp); // Assuming registeredCamps is a list in the Student class
+            selectedCamp.removeAttendee(student); // Assuming removeAttendee method in Camp class removes the student from the camp's attendee list
+            student.setWithdrawnCamps(selectedCamp);
+            return true;
+        }
+        return false;
+    }
+}

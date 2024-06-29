@@ -1,0 +1,58 @@
+package CAMs;
+
+import java.util.List;
+
+public class HandleEnquiries implements EnquirySuggestionHandler {
+	public void submit(Camp camp, Query query, Student student) {
+		Enquiry enquiry = (Enquiry)query;
+        camp.addStudentEnquiry(enquiry);
+        student.addStudentEnquiry(enquiry);
+        enquiry.setCampIncharge(camp);
+        System.out.println("Enquiry submitted successfully.");
+    }
+
+    public void view(Student student) {
+    	List<Enquiry>studentEnquiries = student.getStudentEnquiries();
+        System.out.println("Your inquiries:");
+        for (Enquiry enquiry : studentEnquiries) {
+            System.out.println("Question: " + enquiry.getQuestion());
+            if (enquiry.getResponse() != null) {
+                System.out.println("Response: " + enquiry.getResponse());
+            }
+            System.out.println("Processed: " + (enquiry.getProccessStatus() ? "Yes" : "No"));
+            System.out.println(); // Separate each inquiry
+        }
+    }
+    
+    public void edit(Query oldQuery, String newEnquiryText, Student student) {
+    	Enquiry oldEnquiry = (Enquiry)oldQuery;
+    	List<Enquiry>studentEnquiries = student.getStudentEnquiries();
+        for (Enquiry enquiry : studentEnquiries) {
+            if (enquiry.getQuestion().equals(oldEnquiry.getQuestion())) {
+                enquiry.setQuestion(newEnquiryText);
+                System.out.println("Enquiry edited successfully.");
+                return;
+            }
+        }
+        System.out.println("Enquiry not found.");
+    }
+
+    public void delete(Query query, Student student) {
+    	Enquiry oldEnquiry = (Enquiry)query;
+    	List<Enquiry>studentEnquiries = student.getStudentEnquiries();
+        for (Enquiry enquiry : studentEnquiries) {
+            if (enquiry.getQuestion().equals(oldEnquiry.getQuestion())) {
+                if (!enquiry.isProcessed()) {
+                    studentEnquiries.remove(enquiry);
+                    oldEnquiry.getCampIncharge().deleteStudentEnquiry(oldEnquiry);
+                    //oldEnquiry.getCampIncharge().getStaffIncharge().removeSuggestionFromInbox(oldEnquiry);
+                    System.out.println("Enquiry deleted successfully.");
+                } else {
+                    System.out.println("This inquiry has already been processed and cannot be deleted.");
+                }
+                return;
+            }
+        }
+        System.out.println("Enquiry not found.");
+    }
+}

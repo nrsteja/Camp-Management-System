@@ -1,0 +1,355 @@
+package CAMs;
+import java.util.Scanner;
+import java.io.FileReader;  // Import the File class
+import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.util.ArrayList;
+import java.util.List;
+import java.io.BufferedReader;
+import java.io.*;
+
+enum UserType {
+    STUDENT, STAFF
+}
+
+enum CampAvailability {
+	SCHOOL, NTU
+}
+
+enum Schools {
+	SCSE, ADM, EEE, NBS, SSS
+}
+
+public class CAMs {
+	public static Scanner input = new Scanner(System.in);
+	
+	public static boolean userFound, passwordMatch, logout;
+	public static int choice = 0;
+	public static void main(String[] args) throws FileNotFoundException {
+		// TODO Auto-generated method stub
+		int i,j;
+		
+		
+		//Read Staff and Student data from text file
+		String[] staffName = ReadCol(0, "Staff_List.txt", "	");
+		String[] staffEmail = ReadCol(1, "Staff_List.txt", "	");
+		String[] staffFaculty = ReadCol(2, "Staff_List.txt", "	");
+		
+		String[] studentName = ReadCol(0, "Student_List.txt", "	");
+		String[] studentEmail = ReadCol(1, "Student_List.txt", "	");
+		String[] studentFaculty = ReadCol(2, "Student_List.txt", "	");
+		
+		//Create the camp members
+		User[] users = new User[staffName.length + studentName.length];
+		for(i=0; i<studentEmail.length; i++) {
+			users[i] = new Student(studentName[i], studentEmail[i], studentFaculty[i]);
+		}
+		for(j=0; j<staffEmail.length; j++) {
+			users[i+j] = new Staff(staffName[j], staffEmail[j], staffFaculty[j]);
+		}
+
+		
+		//Login Page
+		System.out.println("Welcome to NTU CAMs!!!");
+	
+		//Check UserID & Password
+		while(true) {
+			System.out.println("Welcome to NTU CAMs!!!");
+            System.out.println("1. Login");
+            System.out.println("2. Exit");
+            System.out.print("Enter your choice: ");
+            int choiceToOpen = input.nextInt();
+            switch (choiceToOpen) {
+            case 1:
+                login(users);
+                choice = 0;
+                break;
+            case 2:
+            	System.out.println("Goodbye!");
+                input.close();
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid choice. Try again.");
+                break;
+            }	
+		}
+	}
+	
+	public static void login(User[] users) {
+		System.out.println("LOGIN CREDENTIALS");
+		User loginUser = getUsernamePassword(users);
+		logout = false;
+		while(!logout) {
+			loginUser.printMenu();
+			choice = 0;
+			while(choice == 0) {
+				System.out.println("Enter your choice:");
+				choice = input.nextInt();
+				if(loginUser.getUserType() == UserType.STUDENT) {
+					if(choice < 1  || choice > 8) {
+		            	System.out.println("Invalid Chocie! Try again");
+		            	System.out.println("Enter your choice: ");
+		            	choice = input.nextInt();
+		            }
+				}
+				else {
+					if(choice < 1  || choice > 5) {
+		            	System.out.println("Invalid Chocie! Try again");
+		            	System.out.println("Enter your choice: ");
+		            	choice = input.nextInt();
+		            }
+				}
+			}
+			if(loginUser instanceof Student) {
+				switch(choice) {
+				case 1: loginUser.changePassword();
+					logout = true;
+					break;
+				case 2:  
+					break;
+				case 3: break;
+				case 4: break;
+				case 5: break;
+				case 6: break;
+				case 7: break;
+				case 8: System.out.println("Thank you!!!");
+					logout = true;
+				}
+			}
+			else if(loginUser instanceof Staff) {
+				switch(choice) {
+				case 1: loginUser.changePassword();
+					break;
+				case 2: CampSettings(loginUser);
+					break;
+				case 3: break;
+				case 4: break;
+				case 5: System.out.println("Thank you!!!");
+					logout = true;
+				}
+			}
+		}
+	}
+	
+	public static String[] ReadCol(int col, String filepath, String delimiter) {
+		String data[];
+		String currentLine;
+		ArrayList<String> colData = new ArrayList<String>();
+		int count = 0;
+		
+		try {
+			FileReader fr = new FileReader(filepath);
+			BufferedReader br = new BufferedReader(fr);
+			//Scanner staffList = new Scanner(new File("Staff_List.txt"));
+			
+			while((currentLine = br.readLine()) != null) {
+				data = currentLine.split(delimiter);
+				if(count != 0)				// To avoid the heading getting stored
+					colData.add(data[col]);
+				count++;
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println(e);
+			return null;
+		} 
+		
+		return colData.toArray(new String[0]);
+	}
+	
+	public static User getUsernamePassword(User[] users) {
+		userFound = false;
+		passwordMatch = false;
+		while(!userFound) {
+			System.out.print("UserID: ");    //Get username
+			String userID = input.next();
+			userID = userID.toUpperCase();   //UserID not case sensitive
+			for(User user: users) {
+				if(user.getUserID().equals(userID)) {
+					userFound = true;
+					while(!passwordMatch) {
+						
+						System.out.print("Password: ");   //Get Password
+						String password = input.next();
+					
+						if(user.getPassword().equals(password)) {
+							System.out.println("Login Successful.");
+							if (user instanceof Student) {
+			                    System.out.println("Welcome, student!"); // Handle student-specific functionality
+			                } 
+							else if (user instanceof Staff) {
+			                    System.out.println("Welcome, staff!");  // Handle staff-specific functionality
+			                }						
+							return user;
+						}
+						else {
+							System.out.println("Invalid Password!!! Try again");
+						}
+					}
+				}
+			}
+			if(!userFound) {
+				System.out.println("UserID invalid!!! Try again");
+			}
+		}
+		return null;
+	}
+	
+	public static void CampSettings(User loginUser) {
+		Staff staff = ((Staff) loginUser);
+		staff.CampSettings();
+		choice = 0;
+		while(choice == 0) {
+			System.out.println("Enter your choice:");
+			choice = input.nextInt();
+			if(choice < 1  || choice > 3) {
+            	System.out.println("Invalid Chocie! Try again");
+            	System.out.println("Enter your choice: ");
+            	choice = input.nextInt();
+            }
+		}
+		switch(choice) {
+		case 1: createCamp(staff);
+			break;
+		case 2:editCamp(staff);
+			break;
+		case 3: deleteCamp(staff);
+			break;
+		}
+	}
+	public static void createCamp(Staff staff) {
+		
+		System.out.print("Enter the name:");
+		String campName = input.next();
+		System.out.print("Enter the Opening Date:");
+		String openDate = input.next();
+		System.out.print("Enter the Closing Date:");
+		String closeDate = input.next();
+		System.out.print("Enter the Registration Closing Date:");
+		String regCloseDate = input.next();
+		boolean found = false;
+		CampAvailability campAccessible = CampAvailability.NTU;;
+		String campSchool = null;
+		while(!found) {
+			System.out.print("Is the camp available to entire NTU(Y/N)");
+			char inp  = input.next().charAt(0);
+			if(inp == 'Y' || inp == 'y') {
+				found = true;
+			}
+			else if(inp == 'N' || inp == 'n') {
+				campAccessible = CampAvailability.SCHOOL;
+				campSchool = staff.getFaculty();
+				found = true;
+			}
+			else {
+				System.out.println("Sorry invalid input. Try again!!!");
+			}
+		}
+		System.out.print("Enter the Location:");
+		String location = input.next();
+		System.out.print("Enter the Total Slots in this camp:");
+		input.nextLine();
+		int totalSlots = input.nextInt();
+		System.out.print("Description:");
+		String description = input.next();
+		input.nextLine();
+		String staffIncharge = staff.getName();
+		Camp camp = new Camp(campName, openDate, closeDate, regCloseDate, campAccessible, campSchool, location, totalSlots, description, staffIncharge);
+		staff.createCamp(camp);
+	}
+	
+	public static void deleteCamp(Staff staff) {
+		String[] campNames = staff.listCreatedCamps();
+		staff.viewCreatedCamps();
+		if(staff.numberOfCamps != 0) {
+			System.out.println("Which camp you want to delete:");
+			for(int i=0; i<staff.numberOfCamps; i++) {
+				System.out.println("("+ (i+1) +")"+campNames[i]);
+			}
+			choice = 0;
+			while(choice == 0) {
+				System.out.println("Enter your choice:");
+				choice = input.nextInt();
+				if(choice < 1  || choice > staff.numberOfCamps) {
+	            	System.out.println("Invalid Chocie! Try again");
+	            	System.out.println("Enter your choice: ");
+	            	choice = input.nextInt();
+	            }
+			}
+			staff.deleteCamp(choice-1);
+		}
+	}
+	
+	 public static void editCamp(Staff staff) {
+		 	String[] campNames = staff.listCreatedCamps();
+		 	staff.viewCreatedCamps();
+		 	if(staff.numberOfCamps != 0) {
+				System.out.println("Which camp you want to delete:");
+				for(int i=0; i<staff.numberOfCamps; i++) {
+					System.out.println("("+ (i+1) +")"+campNames[i]);
+				}
+				choice = 0;
+				while(choice == 0) {
+					System.out.println("Enter your choice:");
+					choice = input.nextInt();
+					if(choice < 1  || choice > staff.numberOfCamps) {
+		            	System.out.println("Invalid Chocie! Try again");
+		            	System.out.println("Enter your choice: ");
+		            	choice = input.nextInt();
+		            }
+				}
+			}
+		 	Camp camp = staff.getCamp(choice-1);
+			choice = 0;
+			while(choice == 0) {
+				System.out.println("Enter your choice:");
+				choice = input.nextInt();
+				if(choice < 1  || choice > 9) {
+	            	System.out.println("Invalid Chocie! Try again");
+	            	System.out.println("Enter your choice: ");
+	            	choice = input.nextInt();
+	            }
+			}
+			switch(choice) {
+				case 1: System.out.print("Enter the new camp Name: ");
+					String newCampName = input.next();
+					camp.setCampName(newCampName);
+					break;
+				case 2: System.out.print("Enter the new Opening Date: ");
+					String newOpenDate = input.next();
+					camp.setOpenDate(newOpenDate);
+					break;
+				case 3: System.out.print("Enter the new Closing Date: ");
+					String newCloseDate = input.next();
+					camp.setCloseDate(newCloseDate);
+					break;
+				case 4: System.out.print("Enter the new Registration closing Date: ");
+					String newRegCloseDate = input.next();
+					camp.setRegCloseDate(newRegCloseDate);
+					break;
+				case 5: 
+					if(camp.getCampAccessible() == CampAvailability.NTU) {
+						camp.setCampAccessible(CampAvailability.SCHOOL);
+					}
+					else {
+						camp.setCampAccessible(CampAvailability.NTU);
+					}
+					break;
+				case 6: System.out.print("Enter the new Total number of Slots: ");
+					int newTotalSlots = input.nextInt();
+					camp.setTotalSlots(newTotalSlots);
+					break;
+				case 7: System.out.print("Enter the new Location: ");
+					String newLocation = input.next();
+					camp.setlocation(newLocation);
+					break;
+				case 8: System.out.print("Enter the new Description: ");
+					String newDescription = input.next();
+					camp.setDescription(newDescription);
+					break;
+				case 9: return false;
+			}
+		}
+	
+}

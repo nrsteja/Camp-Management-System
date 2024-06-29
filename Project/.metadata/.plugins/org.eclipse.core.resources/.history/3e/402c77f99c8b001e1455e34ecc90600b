@@ -1,0 +1,39 @@
+package CAMs;
+
+public class Suggestion extends Query {
+	private String suggestion;
+	//private String response;
+	private CampCommitteeMember postedBy;
+	private boolean isProcessed = false;
+	private Camp camp;
+	
+	public Suggestion(String suggestion, CampCommitteeMember comMem) {
+		this.suggestion = suggestion;
+		this.postedBy = comMem;
+	}
+	
+	public CampCommitteeMember getPostedBy() {
+		return this.postedBy;
+	}
+	
+	// Getter for 'suggestion'
+	public String getSuggestion() {
+	    return suggestion;
+	}
+	public void setCamp(Camp selectedCamp) {
+		this.camp = selectedCamp;
+	}
+	public Camp getCamp() {
+		return this.camp;
+	}
+
+   // Setter for 'suggestion'
+	public void setSuggestion(String suggestion) {
+	    this.suggestion = suggestion;
+	}
+	
+	public void setProccessStatus() {
+		this.isProcessed = true;
+	}
+	
+}

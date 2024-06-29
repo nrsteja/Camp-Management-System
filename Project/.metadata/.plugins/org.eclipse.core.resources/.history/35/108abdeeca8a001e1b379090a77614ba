@@ -1,0 +1,27 @@
+package CAMs;
+
+import java.util.List;
+
+public class EnquiryTextReportFormatSelector implements EnquiryReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new TextReportGenerator();
+//    }
+    public void generateReport() {
+    	System.out.println("Generating TXT report...");
+    }
+    public String generateEnquiryReportForTxt() {
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+
+        report.append("Students - Enquiries - Response:\n");
+        for (Enquiry enquirySubmitted : studentEnquiries) {
+            report.append(enquirySubmitted.getPostedBy().getName()+ " - " + enquirySubmitted.getQuestion() + " - " + enquirySubmitted.getResponse() + "\n"); //+ " (" + attendee.getStudentID() + ")\n"
+        }
+        return report.toString();
+    }
+}

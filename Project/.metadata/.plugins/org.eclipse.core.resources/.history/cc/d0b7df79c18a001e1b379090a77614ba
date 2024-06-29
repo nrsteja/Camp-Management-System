@@ -1,0 +1,14 @@
+package CAMs;
+
+public class ReportTypeChoice {
+	public static void main(String[] args) {
+		System.out.println("Choose the output format:");
+        System.out.println("1. TXT");
+        System.out.println("2. CSV");
+        int outputFormat = InputErrorChecking.getUserChoice("Enter your choice: ", 1, 2);
+        if(outputFormat == 1)
+        	format = "TXT";
+        else
+        	format = "CSV";
+	}
+}

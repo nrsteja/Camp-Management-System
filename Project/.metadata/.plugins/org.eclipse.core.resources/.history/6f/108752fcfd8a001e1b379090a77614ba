@@ -1,0 +1,29 @@
+package CAMs;
+
+import java.util.List;
+
+public class EnquiryPage {
+	public static Camp enquiryPage(List<Camp> allCamps, Student student) {
+		Camp selectedCamp = null;
+		List<Camp> availableCampsToEnquire = student.getAvailableCampsToEnquire(allCamps);
+	    if (availableCampsToEnquire.isEmpty()) {
+	        System.out.println("No available camps to submit inquiries.");
+	        return null;
+	    } 
+	    else {
+	        System.out.println("Available Camps:");
+	        for (int i = 0; i < availableCampsToEnquire.size(); i++) {
+	            System.out.println((i + 1) + ". " + availableCampsToEnquire.get(i).getCampName());
+	        }
+	        boolean found = false;
+	       
+	        while(!found) {
+		        String prompt = "Enter the number of the camp to submit an inquiry: ";
+		        int campChoice = InputErrorChecking.getUserChoice(prompt, 1, availableCampsToEnquire.size());
+	            selectedCamp = availableCampsToEnquire.get(campChoice - 1);
+	            found = true;
+	        }
+	    }
+	    return selectedCamp;
+	}
+}

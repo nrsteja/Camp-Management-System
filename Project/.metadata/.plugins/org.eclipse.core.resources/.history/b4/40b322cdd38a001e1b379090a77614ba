@@ -1,0 +1,10 @@
+package CAMs;
+
+public class CampCommitteeMemberReportGeneration implements ReportGenerator {
+
+	@Override
+	public void generateReport(User user) {
+		
+	}
+
+}

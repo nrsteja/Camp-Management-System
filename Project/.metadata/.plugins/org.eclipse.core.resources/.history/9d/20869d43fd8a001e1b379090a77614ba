@@ -1,0 +1,60 @@
+package CAMs;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentAvailableCamps implements AvailableCamps {
+	public List<Camp> viewAvailableCamps(List<Camp> camps, Student student) {
+        // Iterate through camps and check if they are open to the student's user group
+    	List<Camp> storeCamps = new ArrayList<>(); 
+		boolean found = false;
+        for (Camp camp : camps) {
+        	if((camp.getCampAccessible() == CampAvailability.NTU  
+        			|| camp.getCampSchool() == student.getFaculty()) 
+	    			&& camp.getRemainingSlots() > 0
+	    			&& camp.isRegistrationOpen()
+	    			&& camp.getVisibility() == true
+	    			&& student.isCampMember(camp) == false) {
+        			storeCamps.add(camp);
+        			found = true;
+            }
+        }
+        if(!found) {
+    		System.out.println("No camps Available");
+    	}
+        else {
+        	storeCamps = FilterVisibility.filterVisibility(storeCamps);
+        	printAvailableCamps(storeCamps);
+        }
+        return storeCamps;
+    }
+	public List<Camp> getAvailableCamps(List<Camp> allCamps, Student student) {
+	    List<Camp> availableCamps = new ArrayList<>();
+	    for (Camp camp : allCamps) { // Assuming allCamps is a list of all available camps
+	    	if((camp.getCampAccessible() == CampAvailability.NTU  
+        			|| camp.getCampSchool() == this.getFaculty()) 
+	    			&& camp.getRemainingSlots() > 0
+	    			&& camp.isRegistrationOpen()
+	    			&& camp.getVisibility() == true
+	    			&& this.isCampMember(camp) == false) {
+	    				availableCamps.add(camp);
+	    	}
+	    }
+	    return availableCamps;
+	}
+	
+	public List<Camp> getAvailableCampsToEnquire(List<Camp> allCamps, Student student) {
+	    List<Camp> availableCampsToEnquire = new ArrayList<>();
+	    List<Camp> availableCamps = this.getAvailableCamps(allCamps);
+	    List<Camp> registeredCamps = this.getRegisteredCamps();
+	    for (Camp camp : allCamps) { // Assuming allCamps is a list of all available camps
+	    	if(availableCamps.contains(camp)) {
+	    		availableCampsToEnquire.add(camp);
+	    	}
+	    }
+	    for(int i=0; i<registeredCamps.size(); i++) {
+	    	availableCampsToEnquire.add(registeredCamps.get(i));
+	    }
+	    return availableCampsToEnquire;
+	}
+}

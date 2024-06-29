@@ -1,0 +1,530 @@
+package CAMs;
+import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+public class Student extends User {
+	private String name;
+	private String email;
+	private Schools faculty;
+	private String password;
+	private List<Camp> registeredCamps = new ArrayList<>(); // To store camps the student is registered for
+	private List<Camp> availableCamps;
+	private List<Enquiry> studentEnquiries = new ArrayList<>();
+	private List<Camp> withdrawnCamps = new ArrayList<>();
+	private int numberOfRegisteredCamps = 0;
+	public boolean firstTimeLoginStudent = true;
+	
+	
+	private boolean isCampCommitteeMember;
+	private Camp campToConvertAsCommittee;
+	private boolean enteringFirstTime = true;
+	
+	public Student(String name, String email, Schools faculty) {
+		super(name, email, faculty);
+		availableCamps = new ArrayList<>();
+		isCampCommitteeMember = false;
+	}
+	public UserType getUserType() {return UserType.STUDENT;}
+	
+	public void printMenu() {
+		System.out.println("**********STUDENT LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camps Availability");
+		System.out.println("(3) Camps to Register");
+		System.out.println("(4) Submit  Enquiries about Camps");
+		System.out.println("(5) My Camp Registration Details");
+		System.out.println("(6) Replies to enquiries submitted");
+		System.out.println("(7) Request to withdraw from Camps");
+		System.out.println("(8) View Camp Committee Status");
+		System.out.println("(9) Log Out");
+	}
+	
+	public Camp getCamp(int index) {
+		Camp camp = registeredCamps.get(index);
+		return camp;
+	}
+	
+	public List<Camp> getWithdrawnCamps() {
+		return withdrawnCamps;
+	}
+
+	public void viewCampCommitteeStatus() {
+	    if (isCampCommitteeMember) {
+	        System.out.println("You are a camp committee member.");
+	    } else {
+	        System.out.println("You are not a camp committee member.");
+	    }
+	}
+	public boolean getIsCampCommitteeMember() {
+		return this.isCampCommitteeMember;
+	}
+	public void setIsCampCommitteeMember() {
+		isCampCommitteeMember = true;
+	}
+	
+	public void setCampCommitteeStatus(Camp selectedCamp) {
+		this.isCampCommitteeMember = true;
+		campToConvertAsCommittee = selectedCamp;
+	}
+	
+	public Camp getCampToConvertAsCommittee() {
+		return this.campToConvertAsCommittee;
+	}
+	
+	public boolean getEnteringFirstTime() {
+		return enteringFirstTime;
+	}
+	public void setEnteringFirstTime() {
+		enteringFirstTime = false;
+	}
+
+	
+	public void viewAvailableCamps(List<Camp> camps) {
+        // Iterate through camps and check if they are open to the student's user group
+    	List<Camp> storeCamps = new ArrayList<>(); 
+		boolean found = false;
+        for (Camp camp : camps) {
+        	if((camp.getCampAccessible() == CampAvailability.NTU  
+        			|| camp.getCampSchool() == this.getFaculty()) 
+	    			&& camp.getRemainingSlots() > 0
+	    			&& camp.isRegistrationOpen()
+	    			&& camp.getVisibility() == true
+	    			&& this.isCampMember(camp) == false) {
+        			storeCamps.add(camp);
+        			found = true;
+            }
+        }
+        if(!found) {
+    		System.out.println("No camps Available");
+    	}
+        else {
+        	printAvailableCamps(filterVisibility(storeCamps));
+        }
+    }
+	
+	
+//	public void updateAvailableCamps(List<Camp> allCamps) {
+//	    availableCamps.clear(); // Clear the list before updating
+//
+//	    for (Camp camp : allCamps) {
+//	    	if((camp.getCampAccessible() == CampAvailability.NTU  
+//        			|| camp.getCampSchool() == this.getFaculty()) 
+//	    			&& camp.getRemainingSlots() > 0){
+//	            availableCamps.add(camp);
+//	        }
+//	    }
+//	}
+	
+	public boolean isCampCommitteeMember(Camp camp) {
+		List<CampCommitteeMember> committeMembers = camp.getCommitteeMembers();
+		if(committeMembers.isEmpty()) {
+			return false;
+		}
+		else {
+			for(CampCommitteeMember members: committeMembers) {
+				if(members.equals(this))
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	public List<Camp> getAvailableCamps(List<Camp> allCamps) {
+	    List<Camp> availableCamps = new ArrayList<>();
+	    for (Camp camp : allCamps) { // Assuming allCamps is a list of all available camps
+	    	if((camp.getCampAccessible() == CampAvailability.NTU  
+        			|| camp.getCampSchool() == this.getFaculty()) 
+	    			&& camp.getRemainingSlots() > 0
+	    			&& camp.isRegistrationOpen()
+	    			&& camp.getVisibility() == true
+	    			&& this.isCampMember(camp) == false) {
+	    				availableCamps.add(camp);
+	    	}
+	    }
+	    return availableCamps;
+	}
+	
+	public void addRegisteredCamps(Camp selectedCamp) {
+		registeredCamps.add(selectedCamp);
+	}
+	
+	public boolean checkRegisterForCamp(Camp selectedCamp) {
+	    if (selectedCamp.isRegistrationOpen() && !isRegisteredForCamp(selectedCamp)) {
+	        if (selectedCamp.getRemainingSlots() > 0) {
+	            // Check for date clashes with already registered camps
+	            if (!hasDateClash(selectedCamp)) {
+	                // Check if the camp is in the list of withdrawn camps
+	                if (!hasWithdrawnFromCamp(selectedCamp)) {
+	                    return true;
+	                } else {
+	                    System.out.println("You have previously withdrawn from this camp and cannot register again.");
+	                }
+	            } else {
+	                System.out.println("You have a date clash with another registered camp.");
+	            }
+	        } else {
+	            System.out.println("The camp is full, no more slots available for registration.");
+	        }
+	    } else if (isRegisteredForCamp(selectedCamp)) {
+	        System.out.println("You are already registered for this camp.");
+	    } else if (!selectedCamp.isRegistrationOpen()) {
+	        System.out.println("Registration for this camp is closed.");
+	    }
+	    return false;
+	}
+	
+	
+	public boolean hasWithdrawnFromCamp(Camp camp) {
+	    return withdrawnCamps.contains(camp);
+	}
+
+	
+	public boolean hasDateClash(Camp newCamp) {
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Adjust the date format as per your date representation
+	    
+	    for (Camp camp : registeredCamps) {
+	        try {
+	            Date newCampOpenDate = dateFormat.parse(newCamp.getOpenDate());
+	            Date newCampCloseDate = dateFormat.parse(newCamp.getCloseDate());
+	            Date campOpenDate = dateFormat.parse(camp.getOpenDate());
+	            Date campCloseDate = dateFormat.parse(camp.getCloseDate());
+
+	            // Check if the new camp's open date falls within the date range of an already registered camp
+	            if ((newCampOpenDate.after(campOpenDate) || newCampOpenDate.equals(campOpenDate)) &&
+	                newCampOpenDate.before(campCloseDate)) {
+	                return true; // Date clash found
+	            }
+
+	            // Check if the new camp's close date falls within the date range of an already registered camp
+	            if (newCampCloseDate.after(campOpenDate) && (newCampCloseDate.before(campCloseDate) || newCampCloseDate.equals(campCloseDate))) {
+	                return true; // Date clash found
+	            }
+
+	            // Check if the new camp's date range entirely includes an already registered camp's date range
+	            if (newCampOpenDate.before(campOpenDate) && newCampCloseDate.after(campCloseDate)) {
+	                return true; // Date clash found
+	            }
+	        } catch (ParseException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    return false; // No date clash
+	}
+
+	
+	public List<Camp> getAvailableCampsToEnquire(List<Camp> allCamps) {
+	    List<Camp> availableCampsToEnquire = new ArrayList<>();
+	    List<Camp> availableCamps = this.getAvailableCamps(allCamps);
+	    List<Camp> registeredCamps = this.getRegisteredCamps();
+	    for (Camp camp : allCamps) { // Assuming allCamps is a list of all available camps
+	    	if(availableCamps.contains(camp)) {
+	    		availableCampsToEnquire.add(camp);
+	    	}
+	    }
+	    for(int i=0; i<registeredCamps.size(); i++) {
+	    	availableCampsToEnquire.add(registeredCamps.get(i));
+	    }
+	    return availableCampsToEnquire;
+	}
+
+	public int getNumberOfRegisteredCamps() {return this.numberOfRegisteredCamps;}
+
+    // Register for a camp
+//    public void registerForCamp(Camp camp) {
+//        if (!isRegisteredForCamp(camp) && camp.isRegistrationOpen()) {
+//            registeredCamps.add(camp);
+//            camp.addAttendee(this);
+//            this.availableCamps.remove(camp);
+//            System.out.println("You have successfully registered for the camp: " + camp.getCampName());
+//            numberOfRegisteredCamps++;
+//        } else if (isRegisteredForCamp(camp)) {
+//            System.out.println("You are already registered for this camp.");
+//        } else if (!camp.isRegistrationOpen()) {
+//            System.out.println("Registration for this camp is closed.");
+//        }
+//    }
+    
+    
+
+    // Check if a student is registered for a specific camp
+    public boolean isRegisteredForCamp(Camp camp) {
+        return registeredCamps.contains(camp);
+    }
+
+    // View the camps the student is registered for and their roles
+    public void viewRegisteredCamps() {
+        System.out.println("Camps registered by " + this.getName() + ":");
+        List<Camp> RegisteredCamps = getRegisteredCamps();
+        for (Camp camp : RegisteredCamps) {
+            System.out.println("Camp Name: " + camp.getCampName());
+            System.out.println("Role: " + (this.isCampCommitteeMember(camp) ? "Camp Committee" : "Attendee"));
+            // You can add more camp details here
+        }
+    }
+    
+    
+    public boolean viewCampRegistrationDetails() {
+    	if (getRegisteredCamps().isEmpty()) {
+            System.out.println("You are not registered for any camps.");
+            return false;
+        } 
+    	else {
+    		viewRegisteredCamps();
+        }
+    	return true;
+    }
+    
+    public boolean checkWithdrawFromCamp(Camp selectedCamp) {
+        if (isRegisteredForCamp(selectedCamp)) {
+        	removeRegisteredCamps(selectedCamp); // Assuming registeredCamps is a list in the Student class
+            selectedCamp.removeAttendee(this); // Assuming removeAttendee method in Camp class removes the student from the camp's attendee list
+            withdrawnCamps.add(selectedCamp);
+            return true;
+        }
+        return false;
+    }
+
+    public void removeRegisteredCamps(Camp selectedCamp) {
+    	registeredCamps.remove(selectedCamp);
+    }
+    
+    public void withdrawFromCamps() {
+	    List<Camp> registeredCamps = this.getRegisteredCamps();
+	    boolean checkRegisteredCamps = this.viewCampRegistrationDetails(); // Show registered camps
+	    if(checkRegisteredCamps) {
+		    System.out.println("Enter the number of the camp you want to withdraw from: ");
+		    int choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, registeredCamps.size());
+
+	        Camp selectedCamp = registeredCamps.get(choice - 1);
+	        if(this.isCampCommitteeMember(selectedCamp))
+	        	System.out.println("Sorry you cannot withdraw from the camp as you are a committee Member");
+	        else {
+	        	if (this.checkWithdrawFromCamp(selectedCamp)) {
+	            System.out.println("You have successfully withdrawn from the camp: " + selectedCamp.getCampName());
+	        	} 
+	        	else {
+	        		System.out.println("Withdrawal failed. Please try again.");
+	        	}
+	        }
+	    }
+    }
+    
+    public static boolean inputConfirmation(String message) {
+	    System.out.print(message);
+	    char choice = input.next().charAt(0);
+	    return choice == 'Y' || choice == 'y';
+	}
+ 
+    
+    public boolean registerForCamp() {
+	    List<Camp> allCamps = CampDataManager.getAllCamps();
+	    List<Camp> availableCamps = this.getAvailableCamps(allCamps);
+
+	    if (availableCamps.isEmpty()) {
+	        System.out.println("No camps are available.");
+	        return false;
+	    }
+
+	    this.viewAvailableCamps(allCamps);
+
+	    System.out.println("Enter the number of the camp you want to register for: ");
+	    int campChoice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, availableCamps.size());
+
+        Camp selectedCamp = availableCamps.get(campChoice - 1);
+        if (this.checkRegisterForCamp(selectedCamp)) {
+            if (!this.isCampCommitteeMember) {
+                boolean committeeChoice = inputConfirmation("Do you want to register as Camp committee Member (Y/N)?");
+                if (committeeChoice) {
+                	this.setCampCommitteeStatus(selectedCamp);
+                }
+            }
+            selectedCamp.addAttendee(this);
+            this.addRegisteredCamps(selectedCamp);
+            System.out.println("You have successfully registered for the camp: " + selectedCamp.getCampName());
+            return true;
+        } else {
+            System.out.println("Registration failed. Please try again.");
+        }
+	    return false;
+	}
+    
+    
+//    public void submitSuggestion(Camp camp, String suggestion) {
+//        Enquiry enquiry = new Enquiry(suggestion, this);
+//        camp.addEnquiry(enquiry);
+//        System.out.println("Suggestion submitted successfully.");
+//    }
+
+
+    // Submit enquiries regarding a camp
+    public void submitEnquiry(Camp camp, Enquiry enquiry) {
+        camp.addStudentEnquiry(enquiry);
+        studentEnquiries.add(enquiry);
+        enquiry.setCampIncharge(camp);
+        System.out.println("Enquiry submitted successfully.");
+    }
+    
+    public void enquiryAuthority(Camp selectedCamp) {
+    	String prompt;
+    	this.enquiryMenu();
+    	int inquiryActionChoice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 5);
+    	List<Enquiry> studentEnquiries = this.getStudentEnquiries();
+    	switch (inquiryActionChoice) {
+	    	case 1: prompt = "Enter your enquiry for the camp: ";
+            	String enquiryText = inputErrorChecking.getUserInput(prompt, "string");
+            	Enquiry enquiry = new Enquiry(enquiryText, this);
+            	this.submitEnquiry(selectedCamp, enquiry);
+	    		break;
+	    	case 2:
+            	if(studentEnquiries.isEmpty())
+            		System.out.println("Sorry no enquiries done to display");
+            	else
+            		this.viewEnquiries();
+                break;
+	    	case 3:
+	           	if (studentEnquiries.isEmpty() || selectedCamp.getStudentEnquiries().isEmpty()) {
+	                 System.out.println("No inquiries available to edit.");
+	          	} 
+	           	else {
+	      	       	System.out.println("Submitted Enquiries:");
+	       	        for (int i = 0; i < studentEnquiries.size(); i++) {
+	       	            System.out.println((i + 1) + ". " + studentEnquiries.get(i).getQuestion());
+	       	        }
+	       	        prompt = "Enter the number of the inquiry you want to edit: ";
+	       	        int editChoice = inputErrorChecking.getUserChoice(prompt, 1, studentEnquiries.size());
+       	            Enquiry oldEnquiry = studentEnquiries.get(editChoice - 1);
+       	            if(oldEnquiry.getProccessStatus())
+       	            	System.out.println("This inquiry has already been processed and cannot be edited.");
+       	            else {
+	       	            prompt = "Enter the new text for the inquiry: ";
+	       	            String newInquiryText = inputErrorChecking.getUserInput(prompt, "string");
+	       	            // Edit the selected inquiry
+	       	            this.editEnquiry(oldEnquiry, newInquiryText);
+       	            }
+	       	    }
+	       	    break;
+	    	case 4:
+        	    if (studentEnquiries.isEmpty() || selectedCamp.getStudentEnquiries().isEmpty()) {
+        	        System.out.println("No inquiries available to delete.");
+        	    } else {
+        	        System.out.println("Available Inquiries:");
+        	        for (int i = 0; i < studentEnquiries.size(); i++) {
+        	            System.out.println((i + 1) + ". " + studentEnquiries.get(i).getQuestion());
+        	        }
+        	        prompt = "Enter the number of the inquiry you want to delete: ";
+        	        int deleteChoice = inputErrorChecking.getUserChoice(prompt, 1, studentEnquiries.size());
+        	            // Delete the selected inquiry
+        	        this.deleteEnquiry(studentEnquiries.get(deleteChoice - 1));
+        	    }
+        	    break;
+	    	case 5:
+	    		break;
+    	}
+    }
+
+    public void viewEnquiries() {
+        System.out.println("Your inquiries:");
+        for (Enquiry enquiry : studentEnquiries) {
+            System.out.println("Question: " + enquiry.getQuestion());
+            if (enquiry.getResponse() != null) {
+                System.out.println("Response: " + enquiry.getResponse());
+            }
+            System.out.println("Processed: " + (enquiry.getProccessStatus() ? "Yes" : "No"));
+            System.out.println(); // Separate each inquiry
+        }
+    }
+    
+
+
+    public void editEnquiry(Enquiry oldEnquiry, String newEnquiryText) {
+        for (Enquiry enquiry : studentEnquiries) {
+            if (enquiry.getQuestion().equals(oldEnquiry.getQuestion())) {
+                enquiry.setQuestion(newEnquiryText);
+                System.out.println("Enquiry edited successfully.");
+                return;
+            }
+        }
+        System.out.println("Enquiry not found.");
+    }
+
+    public void deleteEnquiry(Enquiry oldEnquiry) {
+        for (Enquiry enquiry : studentEnquiries) {
+            if (enquiry.getQuestion().equals(oldEnquiry.getQuestion())) {
+                if (!enquiry.isProcessed()) {
+                    studentEnquiries.remove(enquiry);
+                    oldEnquiry.getCampIncharge().getStaffIncharge().removeSuggestionFromInbox(oldEnquiry);
+                    System.out.println("Enquiry deleted successfully.");
+                } else {
+                    System.out.println("This inquiry has already been processed and cannot be deleted.");
+                }
+                return;
+            }
+        }
+        System.out.println("Enquiry not found.");
+    }
+
+    public List<Camp> getRegisteredCamps() {
+        return registeredCamps;
+    }
+    
+    public void addStudentEnquiry(Enquiry enquiry) {
+        studentEnquiries.add(enquiry);
+    }
+    public List<Enquiry> getStudentEnquiries() {
+        return studentEnquiries;
+    }
+    public void removeStudentEnquiry(Enquiry enquiry) {
+    	for(Enquiry checkEnquiry: studentEnquiries) {
+    		if(checkEnquiry.equals(enquiry)) {
+    			checkEnquiry.setProccessStatus();
+    			studentEnquiries.remove(enquiry);
+    		}
+    	}
+    }
+    
+    public void enquiryMenu() {
+    	System.out.println("1. Add Enquiries");
+        System.out.println("2. View Enquiries");
+        System.out.println("3. Edit Enquiry");
+        System.out.println("4. Delete Enquiry");
+        System.out.println("5. Back to Main Menu");
+    }
+    
+    public boolean isCampMember(Camp camp) {
+		List<Student> registeredStudents = camp.getAttendees();
+		for(Student students: registeredStudents) {
+			if(students.equals(this)) {
+				return true;
+			}
+		}
+		return false;
+	}
+    
+
+    
+	public Camp enquiryPage(List<Camp> allCamps) {
+		Camp selectedCamp = null;
+		List<Camp> availableCampsToEnquire = this.getAvailableCampsToEnquire(allCamps);
+        if (availableCampsToEnquire.isEmpty()) {
+            System.out.println("No available camps to submit inquiries.");
+            return null;
+        } 
+        else {
+            System.out.println("Available Camps:");
+            for (int i = 0; i < availableCampsToEnquire.size(); i++) {
+                System.out.println((i + 1) + ". " + availableCampsToEnquire.get(i).getCampName());
+            }
+	        boolean found = false;
+	       
+	        while(!found) {
+		        String prompt = "Enter the number of the camp to submit an inquiry: ";
+		        int campChoice = inputErrorChecking.getUserChoice(prompt, 1, availableCampsToEnquire.size());
+	            selectedCamp = availableCampsToEnquire.get(campChoice - 1);
+	            found = true;
+	        }
+        }
+        return selectedCamp;
+	}
+}

@@ -1,0 +1,55 @@
+package CAMs;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+public class DateClash {
+	public static boolean hasDateClash(Camp newCamp, Student student) {
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Adjust the date format as per your date representation
+	    List<Camp> registeredCamps = student.getRegisteredCamps();
+	    for (Camp camp : registeredCamps) {
+	        try {
+	            Date newCampOpenDate = dateFormat.parse(newCamp.getOpenDate());
+	            Date newCampCloseDate = dateFormat.parse(newCamp.getCloseDate());
+	            Date campOpenDate = dateFormat.parse(camp.getOpenDate());
+	            Date campCloseDate = dateFormat.parse(camp.getCloseDate());
+
+	            // Check if the new camp's open date falls within the date range of an already registered camp
+	            if ((newCampOpenDate.after(campOpenDate) || newCampOpenDate.equals(campOpenDate)) &&
+	                newCampOpenDate.before(campCloseDate)) {
+	                return true; // Date clash found
+	            }
+
+	            // Check if the new camp's close date falls within the date range of an already registered camp
+	            if (newCampCloseDate.after(campOpenDate) && (newCampCloseDate.before(campCloseDate) || newCampCloseDate.equals(campCloseDate))) {
+	                return true; // Date clash found
+	            }
+
+	            // Check if the new camp's date range entirely includes an already registered camp's date range
+	            if (newCampOpenDate.before(campOpenDate) && newCampCloseDate.after(campCloseDate)) {
+	                return true; // Date clash found
+	            }
+	        } catch (ParseException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    return false; // No date clash
+	}
+	public static boolean checkCorrectDate(String startDate, String endDate) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Date startingDate = dateFormat.parse(startDate);
+			Date closingDate = dateFormat.parse(endDate);
+			
+			if(closingDate.before(startingDate))
+				return false;	
+				
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+	}
+}

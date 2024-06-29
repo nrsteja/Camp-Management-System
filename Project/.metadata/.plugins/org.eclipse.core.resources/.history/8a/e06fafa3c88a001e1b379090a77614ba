@@ -1,0 +1,6 @@
+package CAMs;
+
+public interface EnquiryReportFormatSelector {
+    //ReportGenerator selectReportGenerator();
+	void selectReportGenerator();
+}

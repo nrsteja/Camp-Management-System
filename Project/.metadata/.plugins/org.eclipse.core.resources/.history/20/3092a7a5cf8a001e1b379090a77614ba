@@ -1,0 +1,16 @@
+package CAMs;
+
+public class AttendanceTextReportFormatSelector implements AttendanceReportFormatSelector{
+	public void generateReport() {
+		System.out.println("Generating TXT report...");
+		System.out.println("Choose the content format:");
+        System.out.println("1. ATTENDEES");
+        System.out.println("2. COMMITTEE MEMBERS");
+        System.out.println("3. PRINT BOTH");
+        int outputFormat2 = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 3);
+        String reportTxt = generateStudentAttendanceReportForTxt(outputFormat2);
+        writeReportToTXT(reportTxt, this.getCampName() + "_attendance_report.txt");
+
+	}
+
+}

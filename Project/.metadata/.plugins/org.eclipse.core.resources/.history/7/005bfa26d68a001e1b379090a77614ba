@@ -1,0 +1,18 @@
+package CAMs;
+
+public class AttendanceReport implements ReportSelector {
+    @Override
+    public void generateReport(Camp camp) {
+        // Implementation for generating Student Attendance report
+        System.out.println("Generating Student Attendance report...");
+        AttendanceReportFormatSelector reportFormatSelector = null;
+        String format = ReportTypeChoice.getReportFormatChoice();
+        switch(format) {
+	        case "TXT": reportFormatSelector = new AttendanceTextReportFormatSelector();
+	        	break;
+	        case "CSV": reportFormatSelector = new EnquiryCsvReportFormatSelector();
+	        	break;
+        }
+        reportFormatSelector.generateReport(camp);
+    }
+}

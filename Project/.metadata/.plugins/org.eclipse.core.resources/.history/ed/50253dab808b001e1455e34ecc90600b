@@ -1,0 +1,31 @@
+package CAMs;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+public class CampDataManager {
+	private static List<Camp> allCamps = new ArrayList<>();
+    private HashMap<String, List<Camp>> staffCampLists = new HashMap<>();
+
+    public void addCamp(Camp camp, Staff createdByStaff) {
+        allCamps.add(camp);
+
+        // Associate the camp with the staff member who created it
+        staffCampLists
+            .computeIfAbsent(createdByStaff.getName(), k -> new ArrayList<>())
+            .add(camp);
+    }
+
+    public static List<Camp> getAllCamps() {
+        return allCamps;
+    }
+    
+    public void deleteCamp(Camp campToBeDeleted, Staff staff) {
+        if (allCamps.remove(campToBeDeleted)) {
+            System.out.println("Camp " + campToBeDeleted.getCampName() + " has been deleted.");
+            staff.removeFromCampsCreated(campToBeDeleted);
+        } else {
+            System.out.println("Camp " + campToBeDeleted.getCampName() + " not found in the list.");
+        }
+    }
+
+}

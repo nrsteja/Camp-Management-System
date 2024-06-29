@@ -1,0 +1,59 @@
+package CAMs;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+public class EnquiryCsvReportFormatSelector implements EnquiryReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new CsvReportGenerator();
+//    }
+    
+    public void generateReport(Camp camp) {
+    	System.out.println("Generating CSV report...");
+    	try {
+			writeEnquiryReportToCSV(camp);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    public void writeEnquiryReportToCSV(Camp camp) throws IOException {
+        List<Student> attendees = camp.getAttendees();
+        List<Enquiry> studentEnquiries = camp.getStudentEnquiries();
+
+        // Create a FileWriter to write the CSV content to a file
+        FileWriter csvFileWriter = new FileWriter(camp.getCampName() + "_enquiries_report.csv");
+
+        // Create a PrintWriter to simplify writing text
+        PrintWriter csvContent = new PrintWriter(csvFileWriter);
+
+        try {
+            // Write the header row
+        	csvContent.println("Camp Name,Start Date,End Date,Student submitted,Enquiry,Response");
+
+            // Write camp information
+            csvContent.print("\"" + camp.getCampName() + "\",");
+            csvContent.print("\"" + camp.getOpenDate() + "\",");
+            csvContent.print("\"" + camp.getCloseDate() + "\",");
+
+            // Write committee members
+
+            for (Enquiry enquirySubmitted : studentEnquiries) {
+                csvContent.print("\"" + enquirySubmitted.getPostedBy().getName() + "\",");
+                csvContent.print("\"" + enquirySubmitted.getQuestion() + "\",");
+                csvContent.println("\"" + enquirySubmitted.getResponse() + "\",");
+                for (int j = 0; j < 3; j++) {
+                    csvContent.print(",");
+                }
+            }
+            System.out.println("CSV report saved to " + camp.getCampName() + "_enquiries_report.csv");
+
+        } finally {
+            // Close the PrintWriter and FileWriter
+            csvContent.close();
+            csvFileWriter.close();
+        }
+    }
+}

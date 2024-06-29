@@ -1,0 +1,9 @@
+package CAMs;
+
+public class PerformanceReport implements ReportSelector {
+    @Override
+    public void generateReport(Camp camp) {
+        // Implementation for generating Performance report
+        System.out.println("Generating Performance report...");
+    }
+}

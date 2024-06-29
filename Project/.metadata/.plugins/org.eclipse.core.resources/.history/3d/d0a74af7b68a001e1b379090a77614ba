@@ -1,0 +1,6 @@
+package CAMs;
+
+public interface ReportFormatSelector {
+    //ReportGenerator selectReportGenerator();
+	public abstract void selectReportGenerator();
+}

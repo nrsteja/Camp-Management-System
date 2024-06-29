@@ -1,0 +1,49 @@
+package CAMs;
+
+import java.util.List;
+
+public class ReportGeneration(Staff staff) {
+	public static void generateCamp() {
+		ReportSelector reportSelector = null;
+		Camp selectedCamp = campListGenerate(staff);
+		if(selectedCamp != null) {       
+			System.out.println("Choose the Report:");
+	        System.out.println("1. Camp Attendance Report");
+	        System.out.println("2. Committee Memberes Performance Report");
+	        System.out.println("3. Students Enquiry Report");
+	        int reportChoice = InputErrorChecking.getUserChoice("Enter your choice: ", 1, 3);
+	        switch (reportChoice) {
+	            case 1: reportSelector = new AttendanceReport();
+	                break;
+	            case 2: reportSelector = new PerformanceReport();
+	                break;
+	            case 3: reportSelector = new EnquiryReport();
+	                break;
+	        }
+	        reportSelector.generateReport(selectedCamp);
+		}
+	}
+	public static Camp campListGenerate(Staff staff) {
+		// TODO Auto-generated method stub
+		List<Camp> createdCamps = staff.getCreatedCamps();
+		staff.viewCreatedCamps();
+		if(createdCamps.isEmpty()) {
+			System.out.println("Sorry havent created any camps!!!");
+			return null;
+		}
+		else {
+			System.out.println("Created Camps:");
+	        for (int i = 0; i < createdCamps.size(); i++) {
+	            System.out.println((i + 1) + ". " + createdCamps.get(i).getCampName());
+	        }
+			Camp selectedCamp = null;
+	        boolean correctChoice = false;
+	        while(!correctChoice) {
+	        	int campChoice = inputErrorChecking.getUserChoice("Enter the camp number: ", 1, createdCamps.size());
+	        	correctChoice = true;
+	            selectedCamp = createdCamps.get(campChoice - 1);        
+	    	}
+	        return selectedCamp;
+		}
+	}
+}

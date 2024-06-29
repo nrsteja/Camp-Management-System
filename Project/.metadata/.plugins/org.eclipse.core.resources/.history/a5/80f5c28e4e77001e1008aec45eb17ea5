@@ -1,0 +1,27 @@
+package CAMs;
+
+public class Student extends User{
+	String identifier;
+	String name;
+	String email;
+	String faculty;
+	private String password;
+	
+	public Student(String name, String email, String faculty) {
+		super(name, email, faculty);
+	}
+	public UserType getUserType() {return UserType.STUDENT;}
+	
+	public void printMenu() {
+		System.out.println("**********STUDENT LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camps Availability");
+		System.out.println("(3) Camps to Register");
+		System.out.println("(4) Submit  Enquiries about Camps");
+		System.out.println("(5) My Camp Registration Details");
+		System.out.println("(6) Request to enquiry");
+		System.out.println("(7) Request to withdraw from Camps");
+		System.out.println("(8) Log Out");
+	}
+
+}

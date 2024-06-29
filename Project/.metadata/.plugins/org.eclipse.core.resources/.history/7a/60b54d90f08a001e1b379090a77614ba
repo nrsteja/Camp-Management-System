@@ -1,0 +1,51 @@
+package CAMs;
+
+import java.util.List;
+
+public class HandleSuggestions implements EnquirySuggestionHandler{
+	public void submit(Camp camp, Suggestion suggestion, CampCommitteeMember comMem) {
+    	camp.addSuggestion(suggestion);
+    	comMem.addSuggestions(suggestion);
+        System.out.println("Suggestion submitted successfully.");
+        comMem.earnPointsForActivity(); // Award one point for submitting a suggestion
+    }
+    
+    public void editSuggestion(Camp camp, Suggestion oldSuggestion, String newSuggestion, CampCommitteeMember comMem) {
+    	List<Suggestion>suggestionsSubmitted = comMem.getSuggestions();
+        for (Suggestion suggestion : suggestionsSubmitted) {
+            if (suggestion.getSuggestion().equals(oldSuggestion.getSuggestion())) {
+            	suggestion.setSuggestion(newSuggestion);
+                System.out.println("Suggestion edited successfully.");
+                return;
+            }
+        }
+        System.out.println("Suggestion not found.");
+    }
+    
+    public void deleteSuggestion(Camp camp, Suggestion oldSuggestion, CampCommitteeMember comMem) {
+    	List<Suggestion>suggestionsSubmitted = comMem.getSuggestions();
+        for (Suggestion suggestion : suggestionsSubmitted) {
+            if (suggestion.getSuggestion().equals(oldSuggestion.getSuggestion())) {
+                if (!suggestion.isProcessed()) {
+                	comMem.removeSuggestion(suggestion);
+                    camp.deleteSuggestion(oldSuggestion);
+                    //oldEnquiry.getCampIncharge().getStaffIncharge().removeSuggestionFromInbox(oldEnquiry);
+                    System.out.println("Suggestion deleted successfully.");
+                } else {
+                    System.out.println("This suggestion has already been processed and cannot be deleted.");
+                }
+                return;
+            }
+        }
+        System.out.println("Suggestion not found.");
+    }
+    public void viewSuggestions(CampCommitteeMember comMem) {
+    	List<Suggestion>suggestionsSubmitted = comMem.getSuggestions();
+        System.out.println("Your Suggestions:");
+        for (Suggestion suggestion : suggestionsSubmitted) {
+            System.out.println("Suggestions: " + suggestion.getSuggestion());
+            System.out.println("Processed: " + (suggestion.isProcessed() ? "Yes" : "No"));
+            System.out.println(); // Separate each inquiry
+        }
+    }
+}

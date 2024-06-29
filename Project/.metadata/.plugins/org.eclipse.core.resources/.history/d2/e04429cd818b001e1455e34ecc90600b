@@ -1,0 +1,50 @@
+package CAMs;
+
+public class Enquiry extends Query{
+	private String question;
+	private String response;
+	private Student postedBy;
+	private boolean isProcessed = false;
+	private Camp campIncharge;
+	
+	public Enquiry(String question, Student postedBy) {
+		this.question = question;
+		this.postedBy = postedBy;
+	}
+	
+	public void setProccessStatus() {
+		this.isProcessed = true;
+	}
+	
+	public boolean getProccessStatus() {
+		return this.isProcessed;
+	}
+	
+	public void setCampIncharge(Camp camp) {
+		this.campIncharge = camp;
+	}
+	
+	public Camp getCampIncharge() {
+		return this.campIncharge;
+	}
+	
+	public String getQuestion() {
+		return question;
+	}
+	public void setQuestion(String question) {
+		this.question = question;
+	}
+	
+	public Student getPostedBy() {
+		return postedBy;
+	}
+	public void setPostedBy(Student postedBy) {
+		this.postedBy = postedBy;
+	}
+	public String getResponse() {
+		return this.response;
+	}
+	public void setResponse(String response) {
+		this.response = response;
+	}
+}

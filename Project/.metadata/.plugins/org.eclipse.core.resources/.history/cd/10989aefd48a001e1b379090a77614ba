@@ -1,0 +1,5 @@
+package CAMs;
+
+public interface ReportGenerator {
+    void generateReport(User user);
+}

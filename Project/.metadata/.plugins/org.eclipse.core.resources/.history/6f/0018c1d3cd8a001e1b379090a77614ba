@@ -1,0 +1,26 @@
+package CAMs;
+
+import java.util.List;
+
+public class PerformanceReport implements ReportSelector {
+    @Override
+    public void generateReport(Camp camp) {
+        // Implementation for generating Performance report
+        System.out.println("Generating Performance report...");
+        String reportTxt = generatePerformanceReportForTxt();
+    }
+    public String generatePerformanceReportForTxt() {
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+
+        report.append("Committee Members (Points):\n");
+        for (CampCommitteeMember comMems : comMembers) {
+            report.append(comMems.getName()+ " (" + comMems.getPoints() + ")\n"); //+ " (" + attendee.getStudentID() + ")\n"
+        }
+        return report.toString();
+    }
+}

@@ -1,0 +1,8 @@
+package CAMs;
+
+public interface EnquiryHandle {
+	public void submitEnquiry(Camp camp, Enquiry enquiry, Student student);
+	public void viewEnquiries(Student student);
+	public void editEnquiry(Enquiry oldEnquiry, String newEnquiryText, Student student);
+    public void deleteEnquiry(Enquiry oldEnquiry, Student student);
+}

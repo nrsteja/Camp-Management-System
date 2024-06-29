@@ -1,0 +1,14 @@
+package CAMs;
+
+public class TextReportGenerator implements ReportGenerator {
+    @Override
+    public void generateReport(int outputFormat) {
+        // Implementation for generating TXT report
+    	if(outputFormat == 1) {
+    		
+    	}
+    	else
+    		
+        System.out.println("Generating TXT report...");
+    }
+}

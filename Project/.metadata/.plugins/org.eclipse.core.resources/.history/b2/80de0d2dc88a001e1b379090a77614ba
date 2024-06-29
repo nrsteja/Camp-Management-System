@@ -1,0 +1,12 @@
+package CAMs;
+
+public class CsvReportFormatSelector implements ReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new CsvReportGenerator();
+//    }
+    
+    public void selectReportGenerator() {
+    	System.out.println("Generating CSV report...");
+    }
+}

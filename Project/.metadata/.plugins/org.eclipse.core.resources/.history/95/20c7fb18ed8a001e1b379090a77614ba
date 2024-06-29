@@ -1,0 +1,17 @@
+package CAMs;
+
+public class ViewAllCamps {
+	public void viewAllCamps(List<Camp> allCamps) {
+  // View all camps
+	allCamps = FilterVisibility.filterVisibility(allCamps);
+	System.out.println("List of All Camps:");
+  if (allCamps.isEmpty()) {
+      System.out.println("No camps available.");
+  } else {
+  	int count = 1;
+      for (Camp camp : allCamps) {
+          System.out.println("(" + (count++) + ") " + camp.getCampName());
+      }
+  }
+}
+}

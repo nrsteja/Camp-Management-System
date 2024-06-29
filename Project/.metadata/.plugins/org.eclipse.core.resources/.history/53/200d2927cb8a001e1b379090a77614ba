@@ -1,0 +1,39 @@
+package CAMs;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+public class EnquiryTextReportFormatSelector implements EnquiryReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new TextReportGenerator();
+//    }
+    public void generateReport(Camp camp) {
+    	System.out.println("Generating TXT report...");
+    	String reportTxt = generateEnquiryReportForTxt();
+    	writeReportToTXT(reportTxt, this.getCampName() + "_enquiries_report.txt");
+    }
+    public String generateEnquiryReportForTxt() {
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+
+        report.append("Students - Enquiries - Response:\n");
+        for (Enquiry enquirySubmitted : studentEnquiries) {
+            report.append(enquirySubmitted.getPostedBy().getName()+ " - " + enquirySubmitted.getQuestion() + " - " + enquirySubmitted.getResponse() + "\n"); //+ " (" + attendee.getStudentID() + ")\n"
+        }
+        return report.toString();
+    }
+    public void writeReportToTXT(String report, String fileName) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.println(report);
+            System.out.println("TXT report saved to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

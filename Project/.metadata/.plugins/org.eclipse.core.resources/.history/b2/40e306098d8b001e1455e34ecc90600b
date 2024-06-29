@@ -1,0 +1,113 @@
+package CAMs;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+import java.util.InputMismatchException;
+
+public class InputErrorChecking {
+	static Scanner input = new Scanner(System.in);
+
+    // Generic function for error-checked user input
+    public static <T> T getUserInput(String prompt, String type) {
+        Scanner scanner = new Scanner(System.in);
+        T userInput = null;
+        boolean isValidInput = false;
+
+        do {
+            try {
+                System.out.print(prompt);
+                String input = scanner.nextLine();
+
+                // Checking input type based on the provided type parameter
+                switch (type) {
+                    case "int":
+                        userInput = (T) Integer.valueOf(input);
+                        isValidInput = true;
+                        break;
+                    case "double":
+                        userInput = (T) Double.valueOf(input);
+                        isValidInput = true;
+                        break;
+                    case "string":
+                        userInput = (T) input;
+                        isValidInput = true;
+                        break;
+                    case "stringWithoutNumbers&SplChar":
+                    	if (input.matches("^[a-zA-Z\\s]+$")) {
+                            userInput = (T) input;
+                            isValidInput = true;
+                        } else {
+                            throw new InputMismatchException("Invalid input. Please enter alphabets only.");
+                        }
+                        break;
+                    case "stringWithoutSplChar":
+                    	if (input.matches("^[a-zA-Z0-9\\s]*$")) {
+                            userInput = (T) input;
+                            isValidInput = true;
+                        } else {
+                            throw new InputMismatchException("Invalid input. Please enter alphabets and numbers only.");
+                        }
+                        break;
+                    case "yesNoInput":
+                        if (input.matches("^[YyNn]$")) {
+                            userInput = (T) input.toUpperCase();
+                            isValidInput = true;
+                        } else {
+                            throw new InputMismatchException("Invalid input. Please enter either Y or N.");
+                        }
+                        break;
+                    case "date":
+                        if (isValidDateFormat(input, "yyyy-MM-dd")) {
+                            userInput = (T) input;
+                            isValidInput = true;
+                        } else {
+                            throw new InputMismatchException("Invalid date format. Please enter in yyyy-MM-dd.");
+                        }
+                        break;
+                    // Add more cases for other types as needed
+                    default:
+                        throw new InputMismatchException("Invalid input type");
+                }
+
+                //isValidInput = true;
+                
+            } catch (InputMismatchException | NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid " + type + ".");
+                //scanner.nextLine(); // Consume the invalid input to prevent an infinite loop
+            }
+        } while (!isValidInput);
+
+        return userInput;
+    }
+    
+    public static String getUserChoice(String prompt, String start, String end) {
+    	return null;
+    }
+    public static int getUserChoice(String prompt, int start, int end) {
+    	int choice = 0;
+    	boolean check = false;
+		while(!check) {
+			choice = getUserInput(prompt, "int");
+			if(choice >= start  && choice <= end) {
+				check = true;
+			}
+			else {
+            	System.out.println("Invalid Chocie! Try again");
+            }
+		}
+		return choice;
+    }
+    
+    private static boolean isValidDateFormat(String input, String dateFormat) {
+        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+        sdf.setLenient(false);
+
+        try {
+            Date date = sdf.parse(input);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+}

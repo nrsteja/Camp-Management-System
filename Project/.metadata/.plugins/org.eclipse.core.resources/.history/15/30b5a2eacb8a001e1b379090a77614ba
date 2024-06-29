@@ -1,0 +1,9 @@
+package CAMs;
+
+public class AttendanceReport implements ReportSelector {
+    @Override
+    public void generateReport() {
+        // Implementation for generating Student Attendance report
+        System.out.println("Generating Student Attendance report...");
+    }
+}

@@ -1,0 +1,5 @@
+package CAMs.ReportGeneration;
+
+public interface AttendanceReportFormatSelector {
+	void generateReport(Camp camp);
+}

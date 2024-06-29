@@ -1,0 +1,18 @@
+package CAMs;
+
+public class PerformanceReport implements ReportSelector {
+    @Override
+    public void generateReport(Camp camp) {
+        // Implementation for generating Performance report
+        System.out.println("Generating Performance report...");
+        PerformanceReportFormatSelector reportFormatSelector = null;
+        String format = ReportTypeChoice.getReportFormatChoice();
+        switch(format) {
+	        case "TXT": reportFormatSelector = new PerformanceTextReportFormatSelector();
+	        	break;
+	        case "CSV": reportFormatSelector = new PerformanceCsvReportFormatSelector();
+	        	break;
+        }
+        reportFormatSelector.generateReport(camp);
+    }
+}

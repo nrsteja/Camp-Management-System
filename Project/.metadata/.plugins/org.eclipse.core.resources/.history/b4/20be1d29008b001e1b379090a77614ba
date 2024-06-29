@@ -1,0 +1,224 @@
+package CAMs;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Camp {
+	public int totalCamps = 0;
+	private String campName;
+	private String openDate;
+	private String closeDate;
+	private String regCloseDate;
+	private CampAvailability campAccessible;
+	private String location;
+	private int slotsAvailable;
+	private int totalSlots;
+	private Staff staffIncharge;
+	private String description;
+	private List<Student> students;
+	private boolean visibility;
+	private Schools campSchool;
+
+	private List<Student> attendees;
+	private List<CampCommitteeMember> comMems = new ArrayList<>();
+	private List<Enquiry> studentEnquiries;
+    private List<Suggestion> suggestions;
+    private List<Suggestion> approvedSuggestions = new ArrayList<>();
+    private List<String> replies;
+    private List<Student> studentsWhoWithdrawn = new ArrayList<>();
+
+    
+	public static Scanner input = new Scanner(System.in);
+	public static InputErrorChecking inputErrorChecking = new InputErrorChecking();
+	
+	public Camp(String campName, String openDate, String closeDate, String regCloseDate, CampAvailability campAccessible, Schools campSchool, String location, int totalSlots, String description, Staff staffIncharge, boolean visibility) {
+		this.campName = campName;
+		this.openDate = openDate;
+		this.closeDate = closeDate;
+		this.regCloseDate = regCloseDate;
+		this.campAccessible = campAccessible;
+		this.campSchool = campSchool;
+		this.location = location;
+		this.totalSlots = totalSlots;
+		this.description = description;
+		this.staffIncharge = staffIncharge;
+		this.totalCamps+=1;
+		this.visibility = visibility;
+		
+		replies = new ArrayList<>();
+		attendees = new ArrayList<>();
+        studentEnquiries = new ArrayList<>();
+        suggestions = new ArrayList<>();
+        students = new ArrayList<>();
+	}
+	
+	public List<CampCommitteeMember> getCommitteeMemberes() { return this.comMems;}
+	
+	
+	public void approveSuggestion(Suggestion suggestion) {
+	    if (suggestions.contains(suggestion)) {
+	        suggestions.remove(suggestion); // Remove from the list of suggestions
+	        suggestion.setProccessStatus();
+	        approvedSuggestions.add(suggestion);
+	        System.out.println("Suggestion approved: " + suggestion.getSuggestion());
+	    } else {
+	        System.out.println("Suggestion not found in the list of suggestions.");
+	    }
+	}
+	public void addEnquiry(Enquiry enquiry) {
+		studentEnquiries.add(enquiry);
+    }
+
+    public List<Enquiry> getEnquiries() {
+        return studentEnquiries;
+    }
+
+	
+	public int getRemainingSlots() {
+        // Calculate and return the remaining slots
+        return totalSlots - attendees.size()-comMems.size();
+    }
+	
+	
+	public void addCommitteeMember(CampCommitteeMember comMem) {
+		this.comMems.add(comMem);
+	}
+	
+	public boolean isRegistrationOpen() {
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    try {
+	        Date currentDate = new Date();  // Get the current date
+	        Date registrationClosingDate = dateFormat.parse(regCloseDate);
+
+	        // Compare the current date with the registration closing date
+	        if (currentDate.before(registrationClosingDate)) {
+	            return true;  // Registration is open
+	        }
+	    } catch (ParseException e) {
+	        e.printStackTrace(); // Handle the parse exception
+	    }
+	    return false;  // Registration is closed
+	}
+	
+	public List<CampCommitteeMember> getCommitteeMembers() { return comMems;}
+	public List<String> getReplies() { return replies;}
+    public void storeReply(String reply) { replies.add(reply);}	
+	public List<Student> getAttendees() { return attendees;}
+    public void addAttendee(Student student) { attendees.add(student);}
+    public void removeAttendee(Student student) { attendees.remove(student);}
+    public List<Enquiry> getStudentEnquiries() { return studentEnquiries;}
+    public List<Suggestion> getSuggestions() { return suggestions;}
+    public void removeStudentEnquiry(Enquiry enquiry) { staffIncharge.removeSuggestionFromInbox(enquiry);}
+
+    public void addStudentEnquiry(Enquiry enquiry) {
+        studentEnquiries.add(enquiry);
+        staffIncharge.addSuggestionToInbox(enquiry);
+    }
+
+    public void addSuggestion(Suggestion suggestion) {
+        suggestions.add(suggestion);
+        staffIncharge.addSuggestionToInbox(suggestion);
+    }
+	
+	//Accessor or Getter
+	public String getCampName() { return this.campName;}
+	public String getOpenDate() { return this.openDate;}
+	public String getCloseDate() { return this.closeDate;}
+	public Schools getCampSchool() { return this.campSchool;}
+	public String getRegCloseDate() { return this.regCloseDate;}
+	public CampAvailability getCampAccessible() { return this.campAccessible;}
+	public String getLocation() { return this.location;}
+	public int getTotalSlots() { return this.totalSlots;}
+	public Staff getStaffIncharge() { return this.staffIncharge;}
+	public String getDescription() { return this.description;}
+	public boolean getVisibility() { return this.visibility;}
+	
+	//Mutator or Setters
+	public void setCampName(String campName) { this.campName = campName;}
+	public void setOpenDate(String openDate) { this.openDate = openDate;}
+	public void setCloseDate(String closeDate) { this.closeDate = closeDate;}
+	public void setCampSchool(Schools campSchool) { this.campSchool = campSchool;}
+	public void setRegCloseDate(String regCloseDate) { this.regCloseDate = regCloseDate;}
+	public void setCampAccessible(CampAvailability campAccessible) { this.campAccessible = campAccessible;}
+	public void setlocation(String location) { this.location = location;}
+	public void setTotalSlots(int totalSlots) { this.totalSlots = totalSlots;}
+	public void setStaffIncharge(Staff staffIncharge) { this.staffIncharge = staffIncharge;}
+	public void setDescription(String description) { this.description = description;}
+	public void setVisiblity(boolean visiblity) {this.visibility = visiblity;}
+	
+	
+	
+	
+	public int noOfCamps() { return totalCamps;}
+	
+	public void campMenu() {
+		System.out.println("Edit Menu");
+		System.out.println("(1) Camp Name");
+		System.out.println("(2) Opening Date(yyyy-mm-dd)");
+		System.out.println("(3) Closing Date(yyyy-mm-dd)");
+		System.out.println("(4) Registration closing Date(yyyy-mm-dd)");
+		System.out.println("(5) Camp Availability");
+		System.out.println("(6) Total Slots");
+		System.out.println("(7) Location");
+		System.out.println("(8) Description");
+		System.out.println("(9) Visibility for Students");
+		System.out.println("(10) Exit");
+	}
+	
+	public void campInfo() {
+		System.out.println("CampName: " + this.campName);
+		System.out.println("Dates:\nFrom: " + this.openDate + " To: " + this.closeDate);
+		System.out.println("Registration Closing Date: " + this.regCloseDate);
+		System.out.println("Camp Availability: " + this.campAccessible);
+		if(this.campAccessible == CampAvailability.SCHOOL)
+			System.out.println("Camp School: " + this.campSchool);
+		System.out.println("Location: " + this.location);
+		System.out.println("Total Slots: " + this.totalSlots);
+		System.out.println("Slots Available: " + this.getRemainingSlots());
+		System.out.println("Description: " + this.description);
+		System.out.println("Staff Incharge: " + this.staffIncharge.getName());
+	}
+	
+	public void campList() {
+        List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMems = this.getCommitteeMembers();
+        if(attendees.isEmpty() && comMems.isEmpty())
+        	System.out.println("Sorry, no one have registered yet!!!");
+        else {
+        	if(attendees.size() != 0) {
+	            System.out.println("List of attendess:");
+	            for(int i=0;i<attendees.size();i++) {
+	            	System.out.println("(" + (i+1) + ")" + attendees.get(i).getName());
+	            }
+        	}
+            if(comMems.size() != 0) {
+	            System.out.println("List of Committee Members:");
+	            for(int i=0;i<comMems.size();i++) {
+	            	System.out.println("(" + (i+1) + ")" + comMems.get(i).getName());
+	            }
+            }
+        }
+	}
+	private List<Enquiry> deletedEnquiries = new ArrayList<>();
+	
+	public void deleteStudentEnquiry(Enquiry enquiry) {
+		studentEnquiries.remove(enquiry);
+		staffIncharge.removeSuggestionFromInbox(enquiry);
+	}
+	public void deleteSuggestion(Suggestion suggestion) {
+        suggestions.remove(suggestion);
+        staffIncharge.removeSuggestionFromInbox(suggestion);
+    }
+	public void setSuggestion (String newSuggestion, int index) {
+		suggestions.get(index).setSuggestion(newSuggestion);
+	}
+	
+	
+}

@@ -1,0 +1,11 @@
+package CAMs;
+
+public class EnquiryTextReportFormatSelector implements EnquiryReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new TextReportGenerator();
+//    }
+    public void generateReport() {
+    	System.out.println("Generating TXT report...");
+    }
+}

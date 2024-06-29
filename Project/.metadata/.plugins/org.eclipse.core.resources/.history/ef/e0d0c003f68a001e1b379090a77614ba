@@ -1,0 +1,62 @@
+package CAMs;
+
+import java.util.List;
+
+public class StudentRegistrationCamps implements RegistrationCamps {
+	public boolean checkRegisterForCamp(Camp selectedCamp, Student student) {
+	    if (selectedCamp.isRegistrationOpen() && !student.isRegisteredForCamp(selectedCamp)) {
+	        if (selectedCamp.getRemainingSlots() > 0) {
+	            // Check for date clashes with already registered camps
+	            if (!DateClash.hasDateClash(selectedCamp, student)) {
+	                // Check if the camp is in the list of withdrawn camps
+	                if (!student.hasWithdrawnFromCamp(selectedCamp)) {
+	                    return true;
+	                } else {
+	                    System.out.println("You have previously withdrawn from this camp and cannot register again.");
+	                }
+	            } else {
+	                System.out.println("You have a date clash with another registered camp.");
+	            }
+	        } else {
+	            System.out.println("The camp is full, no more slots available for registration.");
+	        }
+	    } else if (student.isRegisteredForCamp(selectedCamp)) {
+	        System.out.println("You are already registered for this camp.");
+	    } else if (!selectedCamp.isRegistrationOpen()) {
+	        System.out.println("Registration for this camp is closed.");
+	    }
+	    return false;
+	}
+	public boolean registerForCamp(Student student) {
+	    List<Camp> allCamps = CampDataManager.getAllCamps();
+	    List<Camp> availableCamps = student.getAvailableCamps(allCamps);
+
+	    if (availableCamps.isEmpty()) {
+	        System.out.println("No camps are available.");
+	        return false;
+	    }
+
+	    availableCamps = student.viewAvailableCamps(allCamps);
+
+	    System.out.println("Enter the number of the camp you want to register for: ");
+	    int campChoice = InputErrorChecking.getUserChoice("Enter your choice: ", 1, availableCamps.size());
+
+        Camp selectedCamp = availableCamps.get(campChoice - 1);
+        RegistrationCamps registrationCamps = new StudentRegistrationCamps();
+        if (registrationCamps.checkRegisterForCamp(selectedCamp, this)) {
+            if (!student.isCampCommitteeMember) {
+                boolean committeeChoice = inputConfirmation("Do you want to register as Camp committee Member (Y/N)?");
+                if (committeeChoice) {
+                	this.setCampCommitteeStatus(selectedCamp);
+                }
+            }
+            selectedCamp.addAttendee(this);
+            this.addRegisteredCamps(selectedCamp);
+            System.out.println("You have successfully registered for the camp: " + selectedCamp.getCampName());
+            return true;
+        } else {
+            System.out.println("Registration failed. Please try again.");
+        }
+	    return false;
+	}
+}

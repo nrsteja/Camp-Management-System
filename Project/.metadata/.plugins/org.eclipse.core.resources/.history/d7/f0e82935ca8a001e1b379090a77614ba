@@ -1,0 +1,5 @@
+package CAMs;
+
+public class AttendanceReportFormatSelector {
+	void generateReport();
+}

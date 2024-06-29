@@ -1,0 +1,178 @@
+package CAMs;
+import java.util.ArrayList;
+import java.util.List;
+public class Student extends User{
+	String identifier;
+	String name;
+	String email;
+	String faculty;
+	private String password;
+	private List<Camp> registeredCamps = new ArrayList<>(); // To store camps the student is registered for
+	private List<Camp> availableCamps;
+	
+	public Student(String name, String email, String faculty) {
+		super(name, email, faculty);
+		availableCamps = new ArrayList<>();
+	}
+	public UserType getUserType() {return UserType.STUDENT;}
+	
+	public void printMenu() {
+		System.out.println("**********STUDENT LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camps Availability");
+		System.out.println("(3) Camps to Register");
+		System.out.println("(4) Submit  Enquiries about Camps");
+		System.out.println("(5) My Camp Registration Details");
+		System.out.println("(6) Request to enquiry");
+		System.out.println("(7) Request to withdraw from Camps");
+		System.out.println("(8) Log Out");
+	}
+	
+	public void viewAvailableCamps(List<Camp> camps) {
+        // Iterate through camps and check if they are open to the student's user group
+        for (Camp camp : camps) {
+            if (camp.isCampOpenToUserGroup(this.faculty)) {
+                System.out.println("Camp Name: " + camp.getCampName());
+                System.out.println("Remaining Slots: " + camp.getRemainingSlots());
+                // You can add more camp details here
+            }
+        }
+    }
+	
+	public void updateAvailableCamps(List<Camp> allCamps) {
+	    availableCamps.clear(); // Clear the list before updating
+
+	    for (Camp camp : allCamps) {
+	        if (camp.isCampOpenToUserGroup(getFaculty())) {
+	            availableCamps.add(camp);
+	        }
+	    }
+	}
+	
+	public List<Camp> getAvailableCamps(List<Camp> allCamps) {
+	    List<Camp> availableCamps = new ArrayList<>();
+	    for (Camp camp : allCamps) { // Assuming allCamps is a list of all available camps
+	        if (camp.isCampOpenToUserGroup(this.getFaculty())) {
+	            availableCamps.add(camp);
+	        }
+	    }
+	    return availableCamps;
+	}
+	
+	public boolean checkRegisterForCamp(Camp selectedCamp) {
+	    if (selectedCamp.isRegistrationOpen() && !isRegisteredForCamp(selectedCamp)) {
+	        registeredCamps.add(selectedCamp); // Assuming registeredCamps is a list in the Student class to store registered camps
+	        selectedCamp.addAttendee(this); // Assuming addAttendee method in Camp class adds the student to the camp's attendee list
+	        return true;
+	    }
+	    return false;
+	}
+
+
+    // Register for a camp
+    public void registerForCamp(Camp camp) {
+        if (!isRegisteredForCamp(camp) && camp.isRegistrationOpen()) {
+            registeredCamps.add(camp);
+            camp.addAttendee(this);
+            System.out.println("You have successfully registered for the camp: " + camp.getCampName());
+        } else if (isRegisteredForCamp(camp)) {
+            System.out.println("You are already registered for this camp.");
+        } else if (!camp.isRegistrationOpen()) {
+            System.out.println("Registration for this camp is closed.");
+        }
+    }
+
+    // Check if a student is registered for a specific camp
+    public boolean isRegisteredForCamp(Camp camp) {
+        return registeredCamps.contains(camp);
+    }
+
+    // View the camps the student is registered for and their roles
+    public void viewRegisteredCamps() {
+        System.out.println("Camps registered by " + this.getName() + ":");
+        for (Camp camp : registeredCamps) {
+            System.out.println("Camp Name: " + camp.getCampName());
+            System.out.println("Role: " + (camp.isCampCommitteeMember(this) ? "Camp Committee" : "Attendee"));
+            // You can add more camp details here
+        }
+    }
+    
+    public void viewCampRegistrationDetails() {
+        System.out.println("Your registered camps:");
+        for (Camp camp : registeredCamps) {
+            System.out.println(camp.getCampName() + " - Registration status: " + (camp.isRegistrationOpen() ? "Open" : "Closed"));
+        }
+    }
+    
+    public boolean checkWithdrawFromCamp(Camp selectedCamp) {
+        if (isRegisteredForCamp(selectedCamp)) {
+            registeredCamps.remove(selectedCamp); // Assuming registeredCamps is a list in the Student class
+            selectedCamp.removeAttendee(this); // Assuming removeAttendee method in Camp class removes the student from the camp's attendee list
+            return true;
+        }
+        return false;
+    }
+
+    // Withdraw from a camp
+    public void withdrawFromCamp(Camp camp) {
+        if (isRegisteredForCamp(camp)) {
+            registeredCamps.remove(camp);
+            camp.removeAttendee(this);
+            System.out.println("You have successfully withdrawn from the camp: " + camp.getCampName());
+        } else {
+            System.out.println("You are not registered for this camp.");
+        }
+    }
+
+    // Submit enquiries regarding a camp
+    public void submitEnquiry(Camp camp, String enquiry) {
+        if (camp.isEnquiryViewableByUser(this)) {
+            camp.addStudentEnquiry(enquiry);
+            System.out.println("Enquiry submitted successfully.");
+        } else {
+            System.out.println("You are not allowed to submit an enquiry for this camp.");
+        }
+    }
+    
+    public void viewCampAvailability() {
+        // Implement code to view camp availability here
+        // You can iterate through a list of available camps and display their details
+        // For example, you can use a for loop to iterate through the camps and print their information
+    	
+    	if(availableCamps.isEmpty()) {
+    		System.out.println("No camps are available");
+    	}
+    	else {
+	        System.out.println("Available Camps:");
+	        for (Camp camp : availableCamps) {
+	            if (camp.isCampOpenToUserGroup(getFaculty())) {
+	                System.out.println("Camp Name: " + camp.getCampName());
+	                System.out.println("Open Date: " + camp.getOpenDate());
+	                System.out.println("Close Date: " + camp.getCloseDate());
+	                System.out.println("Location: " + camp.getlocation());
+	                System.out.println("Remaining Slots: " + camp.getRemainingSlots());
+	                System.out.println("Description: " + camp.getDescription());
+	                System.out.println();
+	            }
+	        }
+    	}
+    }
+
+    // View, edit, and delete enquiries (implementation details depend on your data structure)
+    public void viewEnquiries() {
+        // Implement functionality to view enquiries.
+    }
+
+    public void editEnquiry() {
+        // Implement functionality to edit enquiries.
+    }
+
+    public void deleteEnquiry() {
+        // Implement functionality to delete enquiries.
+    }
+
+    public List<Camp> getRegisteredCamps() {
+        return registeredCamps;
+    }
+
+}

@@ -1,0 +1,8 @@
+package CAMs;
+
+public class AttendanceTextReportFormatSelector extends AttendanceReportFormatSelector{#
+	public void generateReport() {
+		System.out.println("Generating TXT report...");
+	}
+
+}

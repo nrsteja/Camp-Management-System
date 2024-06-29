@@ -1,0 +1,16 @@
+package CAMs;
+
+import java.util.List;
+
+public class EnquiryReply implements ReplyHandler{
+
+	@Override
+	public void reply(Camp camp, Enquiry enquiry, CampCommitteeMember comMem) {
+		String reply =  InputErrorChecking.getUserInput("Enter your reply: ", "string");
+        enquiry.setResponse(reply);
+        System.out.println("Reply added successfully.");
+        enquiry.setProccessStatus();
+        comMem.removeSuggestionFromInbox(enquiry);
+	}
+	
+}

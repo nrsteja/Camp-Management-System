@@ -1,0 +1,28 @@
+package CAMs;
+
+public class CampCommitteeMemberRegistrationCamps implements RegistrationCamps{
+	public boolean checkRegisterForCamp(Camp selectedCamp, Student student) {
+	    if (selectedCamp.isRegistrationOpen() && !student.isRegisteredForCamp(selectedCamp)) {
+	        if (selectedCamp.getRemainingSlots() > 0) {
+	            // Check for date clashes with already registered camps
+	            if (!DateClash.hasDateClash(selectedCamp, student)) {
+	                // Check if the camp is in the list of withdrawn camps
+	                if (!student.hasWithdrawnFromCamp(selectedCamp)) {
+	                    return true;
+	                } else {
+	                    System.out.println("You have previously withdrawn from this camp and cannot register again.");
+	                }
+	            } else {
+	                System.out.println("You have a date clash with another registered camp.");
+	            }
+	        } else {
+	            System.out.println("The camp is full, no more slots available for registration.");
+	        }
+	    } else if (student.isRegisteredForCamp(selectedCamp)) {
+	        System.out.println("You are already registered for this camp.");
+	    } else if (!selectedCamp.isRegistrationOpen()) {
+	        System.out.println("Registration for this camp is closed.");
+	    }
+	    return false;
+	}
+}

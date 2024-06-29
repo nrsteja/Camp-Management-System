@@ -1,0 +1,54 @@
+package CAMs;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+public class PerformanceCsvReportFormatSelector {
+	public void generateReport() {
+		System.out.println("Generating CSV report...");
+		try {
+			writePerformanceReportToCSV();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void writePerformanceReportToCSV() throws IOException {
+        List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Create a FileWriter to write the CSV content to a file
+        FileWriter csvFileWriter = new FileWriter(this.getCampName() + "_performance_report.csv");
+
+        // Create a PrintWriter to simplify writing text
+        PrintWriter csvContent = new PrintWriter(csvFileWriter);
+
+        try {
+            // Write the header row
+        	csvContent.println("Camp Name,Start Date,End Date,Committee Members, Points");
+
+            // Write camp information
+            csvContent.print("\"" + this.getCampName() + "\",");
+            csvContent.print("\"" + this.getOpenDate() + "\",");
+            csvContent.print("\"" + this.getCloseDate() + "\",");
+
+            // Write committee members
+
+            for (CampCommitteeMember comMems : comMembers) {
+                csvContent.print("\"" + comMems.getName() + "\",");
+                csvContent.println("\"" + comMems.getPoints() + "\",");
+                for (int j = 0; j < 3; j++) {
+                    csvContent.print(",");
+                }
+            }
+            System.out.println("CSV report saved to " + this.getCampName() + "_performance_report.csv");
+
+        } finally {
+            // Close the PrintWriter and FileWriter
+            csvContent.close();
+            csvFileWriter.close();
+        }
+    }
+}

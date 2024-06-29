@@ -1,0 +1,50 @@
+package CAMs;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class StaffViewCamps implements ViewingCamps{
+    
+    public List<String> listCreatedCamps(Staff staff) {
+    	List<Camp>campsCreated = staff.getCreatedCamps();
+    	if (campsCreated.size() > 0) {
+    		List<String> campNames = new ArrayList<>();
+        	int count = 0;
+        	for(Camp camp : campsCreated) {
+    			campNames.add(camp.getCampName());
+    		}
+        	return campNames;
+    	    // The rest of your code for editing camps
+    	} else {
+    	    System.out.println("You haven't created any camps.");
+    	}
+    	return null;
+    }
+
+    public void viewCreatedCamps(Staff staff) {
+        // View the camps created by this staff
+    	List<Camp>campsCreated = staff.getCreatedCamps();
+    	if(staff.getNumberOfCamps() == 0)
+			System.out.println("Not created any Camps");
+		else {
+			int count = 1;
+			for(Camp camp : campsCreated) {
+				System.out.println("CAMP "+ (count++) + ":");
+				this.campInfo();
+			}
+		}
+    }
+    public void campInfo() {
+		System.out.println("\tCampName: " + this.campName);
+		System.out.println("\tDates:\n\tFrom: " + this.openDate + " To: " + this.closeDate);
+		System.out.println("\tRegistration Closing Date: " + this.regCloseDate);
+		System.out.println("\tCamp Availability: " + this.campAccessible);
+		if(this.campAccessible == CampAvailability.SCHOOL)
+			System.out.println("\tCamp School: " + this.campSchool);
+		System.out.println("\tLocation: " + this.location);
+		System.out.println("\tTotal Slots: " + this.totalSlots);
+		System.out.println("\tSlots Available: " + this.getRemainingSlots());
+		System.out.println("\tDescription: " + this.description);
+		System.out.println("\tStaff Incharge: " + this.staffIncharge.getName());
+	}
+}

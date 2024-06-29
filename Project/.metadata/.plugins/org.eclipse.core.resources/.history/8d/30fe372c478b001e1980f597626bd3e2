@@ -1,0 +1,108 @@
+package CAMs;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
+
+public class StudentRegistrationCamps implements RegistrationCamps {
+	public static Scanner input = new Scanner(System.in);
+	public boolean checkRegisterForCamp(Camp selectedCamp, Student student) {
+	    if (this.isRegistrationOpen(selectedCamp) && !student.isRegisteredForCamp(selectedCamp)) {
+	        if (selectedCamp.getRemainingSlots() > 0) {
+	            // Check for date clashes with already registered camps
+	            if (!DateConfiguration.hasDateClash(selectedCamp, student)) {
+	                // Check if the camp is in the list of withdrawn camps
+	                if (!student.hasWithdrawnFromCamp(selectedCamp)) {
+	                    return true;
+	                } else {
+	                    System.out.println("You have previously withdrawn from this camp and cannot register again.");
+	                }
+	            } else {
+	                System.out.println("You have a date clash with another registered camp.");
+	            }
+	        } else {
+	            System.out.println("The camp is full, no more slots available for registration.");
+	        }
+	    } else if (student.isRegisteredForCamp(selectedCamp)) {
+	        System.out.println("You are already registered for this camp.");
+	    } else if (!this.isRegistrationOpen(selectedCamp)) {
+	        System.out.println("Registration for this camp is closed.");
+	    }
+	    return false;
+	}
+	public boolean registerForCamp(Student student) {
+		AvailableCamps availCamps = new StudentAvailableCamps();
+	    List<Camp> allCamps = CampDataManager.getAllCamps();
+	    List<Camp> availableCamps = availCamps.getAvailableCamps(allCamps, student);
+
+	    if (availableCamps.isEmpty()) {
+	        System.out.println("No camps are available.");
+	        return false;
+	    }
+
+	    availableCamps = availCamps.viewAvailableCamps(allCamps, student);
+
+	    System.out.println("Enter the number of the camp you want to register for: ");
+	    int campChoice = InputErrorChecking.getUserChoice("Enter your choice: ", 1, availableCamps.size());
+
+        Camp selectedCamp = availableCamps.get(campChoice - 1);
+        if (this.checkRegisterForCamp(selectedCamp, student)) {
+            if (!student.getIsCampCommitteeMember()) {
+                boolean committeeChoice = inputConfirmation("Do you want to register as Camp committee Member (Y/N)?");
+                if (committeeChoice) {
+                	student.setCampCommitteeStatus(selectedCamp);
+                }
+            }
+            selectedCamp.addAttendee(student);
+            student.addRegisteredCamps(selectedCamp);
+            System.out.println("You have successfully registered for the camp: " + selectedCamp.getCampName());
+            return true;
+        } else {
+            System.out.println("Registration failed. Please try again.");
+        }
+	    return false;
+	}
+	public static boolean inputConfirmation(String message) {
+	    System.out.print(message);
+	    char choice = input.next().charAt(0);
+	    return choice == 'Y' || choice == 'y';
+	}
+	public void viewRegisteredCamps(Student student) {
+        System.out.println("Camps registered by " + student.getName() + ":");
+        List<Camp> RegisteredCamps = student.getRegisteredCamps();
+        int count = 1;
+        for (Camp camp : RegisteredCamps) {
+            System.out.println("("+(count++)+") " + "Camp Name: " + camp.getCampName());
+            System.out.println("    Role: " + (student.isCampCommitteeMember(camp) ? "Camp Committee" : "Attendee"));
+            // You can add more camp details here
+        }
+    }
+	public boolean viewCampRegistrationDetails(Student student) {
+    	if (student.getRegisteredCamps().isEmpty()) {
+            System.out.println("You are not registered for any camps.");
+            return false;
+        } 
+    	else {
+    		this.viewRegisteredCamps(student);
+        }
+    	return true;
+    }
+	
+	public boolean isRegistrationOpen(Camp camp) {
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    try {
+	        Date currentDate = new Date();  // Get the current date
+	        Date registrationClosingDate = dateFormat.parse(camp.getRegCloseDate());
+
+	        // Compare the current date with the registration closing date
+	        if (currentDate.before(registrationClosingDate)) {
+	            return true;  // Registration is open
+	        }
+	    } catch (ParseException e) {
+	        e.printStackTrace(); // Handle the parse exception
+	    }
+	    return false;  // Registration is closed
+	}
+}

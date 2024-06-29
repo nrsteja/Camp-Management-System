@@ -1,0 +1,8 @@
+package CAMs;
+
+public interface EnquirySuggestionHandler {
+	public void submit(Camp camp, Query query, Student student);
+	public void view(Student student);
+	public void edit(Enquiry oldEnquiry, String newEnquiryText, Student student);
+    public void delete(Enquiry oldEnquiry, Student student);
+}

@@ -1,0 +1,164 @@
+package CAMs;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CampCommitteeMember extends Student {
+    private int points;
+    private List<Camp> registeredCamps = new ArrayList<>();
+    private List<Enquiry> studentEnquiries = new ArrayList<>();
+    private List<Camp> withdrawnCamps = new ArrayList<>();
+    private List<Camp> availableCamps;
+    private List<Suggestion> suggestionsSubmitted = new ArrayList<>();
+    private Camp committeeCamp;
+    
+    public CampCommitteeMember(String name, String email, Schools faculty, List<Camp> getRegisteredCamps, List<Enquiry> getStudentEnquiries, List<Camp> getwithdrawnCamps) {
+        super(name, email, faculty);
+        this.registeredCamps = getRegisteredCamps;
+        this.studentEnquiries = getStudentEnquiries;
+        this.withdrawnCamps = getwithdrawnCamps;
+        points = 0; // Initialize points to 0 for a new committee member
+    }
+    
+    public Camp getCommitteeCamp() { return this.committeeCamp;}
+    public void setCommitteeCamp(Camp camp) { this.committeeCamp = camp;}
+    
+    public int getPoints() { return this.points;}
+    
+    public boolean hasDateClash(Camp selectedCamp) {
+    	return DateConfiguration.hasDateClash(selectedCamp, this);
+    }
+    
+    public List<Camp> getRegisteredCamps() {
+        return registeredCamps;
+    }
+    public void setRegisteredCamps() {
+    	List<Camp> oldCamps = super.getRegisteredCamps();
+    	if (oldCamps.isEmpty()) {
+    		System.out.println("Empty");
+    	}
+    	else
+    		System.out.println("Not Empty");
+        this.registeredCamps = super.getRegisteredCamps();
+    }
+    
+	public void setCampCommitteeStatus(Student student) {
+		this.setIsCampCommitteeMember();
+		Camp selectedCamp = student.getCampToConvertAsCommittee();
+		selectedCamp.addCommitteeMember(this);
+		selectedCamp.removeAttendee(student);
+		
+	}
+    
+    
+    public List<Enquiry> getStudentEnquiries() {
+        return studentEnquiries;
+    }
+    public void setStudentEnquiries() {
+        this.studentEnquiries = super.getStudentEnquiries();
+    }
+    
+    public List<Camp> getWithdrawnCamps() {
+        return withdrawnCamps;
+    }
+    public void setWithdrawnCamps() {
+        this.withdrawnCamps = super.getWithdrawnCamps();
+    }
+
+    public boolean isRegisteredForCamp(Camp camp) {
+        return registeredCamps.contains(camp);
+    }
+    
+    public boolean isCampMember(Camp camp) {
+		List<Student> registeredStudents = camp.getAttendees();
+		List<CampCommitteeMember> registeredMember = camp.getCommitteeMemberes();
+		for(CampCommitteeMember comMember: registeredMember) {
+			if(comMember.equals(this)) {
+				return true;
+			}
+		}
+		for(Student students: registeredStudents) {
+			if(students.equals(this)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+    
+    public void printMenu() {
+		System.out.println("**********COMMITTEE MEMBER LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camps Availability");
+		System.out.println("(3) Camps to Register");
+		System.out.println("(4) Enquiries & Suggestions Page");
+		System.out.println("(5) My Camp Registration Details");
+		System.out.println("(6) Replies to enquiries submitted");
+		System.out.println("(7) Request to withdraw from Camps");
+		System.out.println("(8) View Camp Committee Status");
+		System.out.println("(9) Report Generation");
+		System.out.println("(10) Log Out");
+	}
+
+    // Camp committee members can view the details of the camp they have registered for
+    public void viewCampDetails(Camp camp) {
+        if (this.isCampCommitteeMember(camp)) {
+            // Allow committee members to view camp details
+            camp.campInfo();
+        } else {
+            System.out.println("You are not a committee member for this camp.");
+        }
+    }
+
+//	public boolean isCampCommitteeMember(Camp camp) {
+//		List<CampCommitteeMember> committeMembers = camp.getCommitteeMembers();
+//		if(committeMembers.isEmpty()) {
+//			return false;
+//		}
+//		else {
+//			for(CampCommitteeMember members: committeMembers) {
+//				if(members.equals(this))
+//					return true;
+//			}
+//		}
+//		return false;
+//	}
+
+    // Camp committee members can view and reply to enquiries from students
+    
+
+    public void earnPointsForActivity() {
+        points++;
+    }
+
+    public List<Suggestion> getSuggestions() {
+        return suggestionsSubmitted;
+    }
+    
+    public void addSuggestions(Suggestion suggestion) {
+    	suggestionsSubmitted.add(suggestion);
+    }
+    
+    public void removeSuggestion(Suggestion suggestion) {
+    	suggestionsSubmitted.remove(suggestion);
+    }
+    public void changeStatus(Suggestion suggestion) {
+    	for(Suggestion suggest: suggestionsSubmitted) {
+    		if(suggest.equals(suggestion)) {
+    			suggest.setProccessStatus();
+    		}
+    	}
+    }
+    
+    public void addRegisteredCamps(Camp selectedCamp) {
+		registeredCamps.add(selectedCamp);
+	}
+    
+    public void removeRegisteredCamps(Camp selectedCamp) {
+    	registeredCamps.remove(selectedCamp);
+    }
+  
+    
+}

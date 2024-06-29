@@ -1,0 +1,27 @@
+package CAMs;
+
+public static class GenerateReportMenu {
+	public static void generateReport(Staff staff) {
+		Camp selectedCamp = campListGenerate(staff);
+		if(selectedCamp != null) {
+			System.out.println("Choose the output format:");
+	        System.out.println("1. TXT");
+	        System.out.println("2. CSV");
+	        int outputFormat = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 2);
+	        
+	        
+			System.out.println("Choose the Report:");
+	        System.out.println("1. Camp Attendance Report");
+	        System.out.println("2. Committee Memberes Performance Report");
+	        System.out.println("3. Students Enquiry Report");
+	        int reportChoice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 3);
+	        if(reportChoice == 1)
+	        	selectedCamp.generateStudentAttendanceReport(outputFormat);
+	        else if(reportChoice == 2)
+	        	selectedCamp.generatePerformanceReport(outputFormat);
+	        else
+	        	selectedCamp.generateEnquiryReport(outputFormat);
+		}
+	}
+
+}

@@ -1,0 +1,109 @@
+package CAMs;
+
+import java.util.List;
+
+public class SuggestionAuthority implements Authority {
+
+	@Override
+	public void authorityPage(Camp selectedCamp, User user) {
+		
+		if(user instanceof CampCommitteeMember) {
+			CampCommitteeMember comMem = (CampCommitteeMember) user;
+			List<Suggestion> suggestionsSubmitted = comMem.getSuggestions();
+	    	this.enquiryMenu();
+	    	int inquiryActionChoice = InputErrorChecking.getUserChoice("Enter your choice: ", 1, 7);
+	    	switch (inquiryActionChoice) {
+		    	case 1: String prompt = "Enter your Suggestion for the camp: ";
+		        	String suggestText = InputErrorChecking.getUserInput(prompt, "string");
+		        	Suggestion suggest = new Suggestion(suggestText, comMem);
+		        	suggest.setCamp(selectedCamp);
+		        	comMem.submitSuggestion(selectedCamp.getStaffIncharge(), selectedCamp, suggest);
+		    		break;
+		    	case 2:
+		        	if(suggestionsSubmitted.isEmpty())
+		        		System.out.println("Sorry no suggestions given to display");
+		        	else
+		        		comMem.viewSuggestions();
+		            break;
+		    	case 3:
+					if (suggestionsSubmitted.isEmpty()) {
+					    System.out.println("No suggestions available to edit.");
+					} 
+					else {
+					    System.out.println("Available suggestions:");
+						for (int i = 0; i < suggestionsSubmitted.size(); i++) {
+						    System.out.println((i + 1) + ". " + suggestionsSubmitted.get(i).getSuggestion());
+						}
+						prompt = "Enter the number of the suggestion you want to edit: ";
+						int editChoice = InputErrorChecking.getUserChoice(prompt, 1, suggestionsSubmitted.size());
+						prompt = "Enter the new text for the suggestion: ";
+						String newInquiryText = InputErrorChecking.getUserInput(prompt, "string");
+						//suggestionsSubmitted.get(editChoice).setSuggestion(newInquiryText);
+						comMem.editSuggestion(selectedCamp, suggestionsSubmitted.get(editChoice - 1), newInquiryText);
+					}
+					break;
+		    	case 4:
+		    	    if (suggestionsSubmitted.isEmpty()) {
+		    	        System.out.println("No suggestions available to delete.");
+		    	    } else {
+		    	        System.out.println("Available suggestions:");
+		    	        for (int i = 0; i < suggestionsSubmitted.size(); i++) {
+		    	            System.out.println((i + 1) + ". " + suggestionsSubmitted.get(i).getSuggestion());
+		    	        }
+		    	        prompt = "Enter the number of the suggestion you want to delete: ";
+		    	        int deleteChoice = InputErrorChecking.getUserChoice(prompt, 1, suggestionsSubmitted.size());
+		    	        comMem.deleteSuggestion(selectedCamp, suggestionsSubmitted.get(deleteChoice - 1));
+		    	    }
+		    	    break;
+		    	case 5: List<Enquiry> campEnquiries = selectedCamp.getEnquiries();
+		    		int count = 1;
+		    		boolean found = false;
+		    		for(Enquiry enquiry: campEnquiries) {
+		    			if(enquiry.getProccessStatus() == false) {
+		    				found = true;
+		    				System.out.println("(" + (count++) + ")" + enquiry.getQuestion());
+		    			}
+		    		}
+		    		if(!found)
+		    			System.out.println("No enquirires pending to reply!");
+		    		break;
+		    	case 6: comMem.viewAndReplyToEnquiries(selectedCamp);
+		    		
+		    		break;
+		    	case 7:
+		          // Return to the main menu
+		          break;
+	
+	    	}
+		}
+	}
+	public void enquiryMenu() {
+    	System.out.println("1. Add Suggestions");
+        System.out.println("2. View Suggestions");
+        System.out.println("3. Edit Suggestions");
+        System.out.println("4. Delete Suggestions");
+        System.out.println("5. View Enquiries");
+        System.out.println("6. Reply Enquiries");
+        System.out.println("7. Back to Main Menu");
+    }
+	
+	public void submitSuggestion(Staff staff, Camp camp, Suggestion suggestion, CampCommitteeMember comMem) {
+    	camp.addSuggestion(suggestion);
+    	comMem.addSuggestions(suggestion);
+        System.out.println("Suggestion submitted successfully.");
+        comMem.earnPointsForActivity(); // Award one point for submitting a suggestion
+    }
+    
+    public void editSuggestion(Camp camp, Suggestion oldSuggestion, String newSuggestion, CampCommitteeMember comMem) {
+    	List<Suggestion>suggestionsSubmitted = comMem.getsuggestionsSubmitted();
+        for (Suggestion suggestion : suggestionsSubmitted) {
+            if (suggestion.getSuggestion().equals(oldSuggestion.getSuggestion())) {
+            	suggestion.setSuggestion(newSuggestion);
+                System.out.println("Suggestion edited successfully.");
+                return;
+            }
+        }
+        System.out.println("Suggestion not found.");
+    }
+
+}

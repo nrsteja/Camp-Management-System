@@ -1,0 +1,9 @@
+package CAMs;
+
+public interface ReportGenerator {
+	void generateEnquiryReport();
+
+    void generatePerformanceReport();
+
+    void generateStudentAttendanceReport();
+}

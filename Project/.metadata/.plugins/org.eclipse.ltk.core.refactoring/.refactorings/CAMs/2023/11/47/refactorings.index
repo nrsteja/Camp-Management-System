@@ -1,0 +1,21 @@
+1700589144466	Rename type 'ReportGeneration'
+1700590395084	Rename compilation unit 'TextFormatSelector.java'
+1700591840151	Delete element
+1700830284984	Rename type 'ReportFormatSelector'
+1700830323474	Rename type 'TextReportFormatSelector'
+1700830351920	Rename type 'CsvReportFormatSelector'
+1700830850555	Delete element
+1700830982494	Delete element
+1700833868547	Copy compilation units
+1700833925242	Copy compilation unit
+1700833971175	Delete element
+1700834708095	Rename type 'ReportGeneration'
+1700841558967	Rename type 'StaffHandler'
+1700847404816	Rename type 'EnquiryHandle'
+1700847567292	Rename type 'StudentEnquiryHandle'
+1700847585378	Rename type 'HandleEnquiry'
+1700849246853	Delete element
+1700850608565	Delete element
+1700853487714	Rename compilation unit 'DateClash.java'
+1700904092406	Delete element
+1700929859838	Rename type 'Staffviewablereportselector'

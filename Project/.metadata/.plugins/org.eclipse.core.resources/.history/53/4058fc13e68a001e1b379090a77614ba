@@ -1,0 +1,61 @@
+package CAMs;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DisplaySuggestionBox {
+	public void displaySuggestionInbox(Staff staff) {
+	    List<Query> queries = staff.getSuggestionInbox();
+	    if(queries.isEmpty()) {
+	    	System.out.println("Your suggestion inbox is empty.");
+	    }
+	    else {
+	    	List<Enquiry> enquiries = new ArrayList<>();
+	    	List<Suggestion> suggestionList = new ArrayList<>();
+	    	for(Query query:queries) {
+			    if(query instanceof Enquiry) {
+			    	enquiries.add((Enquiry)query);
+			    }
+			    else if(query instanceof Suggestion) {
+			    	suggestionList.add((Suggestion)query);
+			    }
+	    	}
+	    	if(!enquiries.isEmpty()) {
+		    	System.out.println("Enquiries Inbox:");
+		    	for (int i = 0; i < enquiries.size(); i++) {
+	        		System.out.println((i + 1) + ". " + enquiries.get(i).getQuestion());
+		            if (enquiries.get(i).getResponse() != null) {
+		                System.out.println("Response: " + enquiries.get(i).getResponse());
+		            }
+		        }
+	    	}
+	    	if(!suggestionList.isEmpty()) {
+		    	System.out.println("Suggestion Inbox:");
+		    	for (int i = 0; i < suggestionList.size(); i++) {
+	        		System.out.println((i + 1) + ". " + suggestionList.get(i).getSuggestion());
+		            if (suggestionList.get(i).getResponse() != null) {
+		                System.out.println("Response: " + suggestionList.get(i).getResponse());
+		            }
+		        }
+	    	}
+	    	if(!enquiries.isEmpty()) {
+		    	String prompt = "Do you want to reply to any Enquiry? (Enter the number or 0 to skip)";
+		        int replyChoice =  InputErrorChecking.getUserInput(prompt, "int");
+	
+		        if (replyChoice > 0 && replyChoice <= enquiries.size()) {
+		        	ReplyHandler replyHandler = new EnquiryReply();
+		        	replyHandler.reply(enquiries.get(replyChoice - 1));
+		        }
+	    	}
+	    	if(!suggestionList.isEmpty()) {
+		        String prompt = "Do you want to approve any Suggestion? (Enter the number or 0 to skip)";
+		        int approveChoice = InputErrorChecking.getUserInput(prompt, "int");
+		        
+		        if (approveChoice > 0 && approveChoice <= suggestionList.size()) {
+		            staff.approveSuggestion(suggestionList.get(approveChoice - 1));
+		        }
+	    	}
+	    }
+	    	
+	}
+}

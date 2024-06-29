@@ -1,0 +1,13 @@
+package CAMs;
+
+public class EnquiryCsvReportFormatSelector implements EnquiryReportFormatSelector {
+    @Override
+//    public ReportGenerator selectReportGenerator() {
+//        return new CsvReportGenerator();
+//    }
+    
+    public void generateReport() {
+    	System.out.println("Generating CSV report...");
+    	writeEnquiryReportToCSV();
+    }
+}

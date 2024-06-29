@@ -1,0 +1,14 @@
+package CAMs;
+
+import java.util.List;
+
+public class EnquiryReply implements ReplyHandler{
+
+	@Override
+	public void reply() {
+		List<Enquiry> enquiries = camp.getStudentEnquiries();
+        enquiries.add(studentEnquiry);
+        System.out.println("Reply sent to student enquiry: " + studentEnquiry);
+	}
+	
+}

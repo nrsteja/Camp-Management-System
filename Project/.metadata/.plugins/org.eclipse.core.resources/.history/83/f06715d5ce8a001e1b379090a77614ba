@@ -1,0 +1,7 @@
+package CAMs;
+
+public class PerformanceTextReportFormatSelector {
+	public void generateReport() {
+		System.out.println("Generating TXT report...");
+	}
+}

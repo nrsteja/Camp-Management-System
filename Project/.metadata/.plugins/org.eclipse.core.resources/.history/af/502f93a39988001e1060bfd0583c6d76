@@ -1,0 +1,8 @@
+package CAMs;
+
+public class TextReportFormatSelector implements ReportFormatSelector {
+    @Override
+    public ReportGenerator selectReportGenerator() {
+        return new TextReportGenerator();
+    }
+}

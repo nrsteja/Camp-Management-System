@@ -1,0 +1,18 @@
+package CAMs;
+
+public class EnquiryReport implements ReportSelector {
+    @Override
+    public void generateReport(Camp camp) {
+        // Implementation for generating Enquiry report
+        System.out.println("Generating Enquiry report...");
+        EnquiryReportFormatSelector reportFormatSelector = null;
+        String format = ReportTypeChoice.getReportFormatChoice();
+        switch(format) {
+	        case "TXT": reportFormatSelector = new EnquiryTextReportFormatSelector();
+	        	break;
+	        case "CSV": reportFormatSelector = new EnquiryCsvReportFormatSelector();
+	        	break;
+        }
+        reportFormatSelector.generateReport(camp);
+    }
+}

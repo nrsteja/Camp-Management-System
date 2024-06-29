@@ -1,0 +1,23 @@
+package CAMs;
+
+public class CampCommitteeMemberReportGeneration implements ReportGenerator {
+
+	@Override
+	public void generateReport(User user) {
+		Camp camp = comMem.getCommitteeCamp();
+		if(camp == null)
+			System.out.println("Sorry, Havent registered for any camps as committee Member");
+		else {
+			System.out.println("1. Student Attendance Report");
+			System.out.println("2. Enquiries Submitted List");
+			String prompt = "Enter your choice:";
+			int selection = inputErrorChecking.getUserChoice(prompt, 1, 2);
+			if(selection == 1)
+				camp.generateStudentAttendanceReport();
+			else
+				camp.generateEnquiryReport();
+		}
+		
+	}
+
+}

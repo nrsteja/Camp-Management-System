@@ -1,0 +1,5 @@
+package CAMs;
+
+public class DateClash {
+	boolean hasDateClash(Camp newCamp); 
+}

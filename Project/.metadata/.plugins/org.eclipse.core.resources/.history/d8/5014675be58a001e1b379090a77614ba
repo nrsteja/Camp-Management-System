@@ -1,0 +1,206 @@
+package CAMs;
+
+import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+
+public class Staff extends User{
+	private static int numberOfCamps = 0;
+	private int points = 0;
+	private String name;
+	private String email;
+	private String faculty;
+	public CampDataManager campDataManager = new CampDataManager();
+	private List<Camp> campsCreated = new ArrayList<>();
+	private List<Query> suggestionInbox = new ArrayList<>();
+	
+	public Staff(String name, String email, Schools faculty) {
+		super(name, email, faculty);
+	}
+	public UserType getUserType() {return UserType.STAFF;}
+	
+	public void printMenu() {
+		System.out.println("**********STAFF LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camp Settings");
+		System.out.println("(3) Suggestions Inbox");
+		System.out.println("(4) Ongoing Camps");
+		System.out.println("(5) Logout");
+	}
+	public void CampSettings() {
+		System.out.println("**********CAMP SETTINGS*********");
+		System.out.println("(1) Create Camp");
+		System.out.println("(2) Edit Camp");
+		System.out.println("(3) Delete Camp");
+		System.out.println("(4) Camp Report Generation");
+		System.out.println("(5) Back");
+	}
+	
+	public Camp getCamp(int index) {
+		Camp camp = campsCreated.get(index);
+		return camp;
+	}
+	public List<Camp> getCreatedCamps() {
+		return campsCreated;
+	}
+	
+	public int getNumberOfCamps() {
+		return numberOfCamps;
+	}
+	
+	public void deleteCamp(Camp camp, CampDataManager campDataManager) {
+	    if (campsCreated.contains(camp)) {
+	        campsCreated.remove(camp);
+	        numberOfCamps--;
+	        campDataManager.deleteCamp(camp, this);
+	    }
+	}
+	
+	public void createCamp(Camp camp, CampDataManager campDataManager) {
+        this.campsCreated.add(camp);
+        campDataManager.addCamp(camp, this);
+        numberOfCamps++;
+    }
+	
+	public void removeFromCampsCreated(Camp camp) {
+        campsCreated.remove(camp);
+        numberOfCamps--;
+    }
+
+    public void viewAllCamps(List<Camp> allCamps) {
+        // View all camps
+    	allCamps = filterVisibility(allCamps);
+    	System.out.println("List of All Camps:");
+        if (allCamps.isEmpty()) {
+            System.out.println("No camps available.");
+        } else {
+        	int count = 1;
+            for (Camp camp : allCamps) {
+                System.out.println("(" + (count++) + ") " + camp.getCampName());
+            }
+        }
+    }
+    
+    public List<String> listCreatedCamps() {
+    	if (campsCreated.size() > 0) {
+    		List<String> campNames = new ArrayList<>();
+        	int count = 0;
+        	for(Camp camp : campsCreated) {
+    			campNames.add(camp.getCampName());
+    		}
+        	return campNames;
+    	    // The rest of your code for editing camps
+    	} else {
+    	    System.out.println("You haven't created any camps.");
+    	}
+    	return null;
+    }
+
+    public void viewCreatedCamps() {
+        // View the camps created by this staff
+    	if(numberOfCamps == 0)
+			System.out.println("Not created any Camps");
+		else {
+			int count = 1;
+			for(Camp camp : campsCreated) {
+				System.out.println("CAMP "+ (count++) + ":");
+				camp.campInfo();
+			}
+		}
+    }
+    
+    public List<Query> getSuggestionInbox() {
+        return suggestionInbox;
+    }
+    
+    public void addSuggestionToInbox(Query suggestion) {
+        suggestionInbox.add(suggestion);
+    }
+
+    public void removeSuggestionFromInbox(Query query) {
+    	suggestionInbox.remove(query);
+    }
+   
+    public void approveSuggestion(Suggestion suggestion) {
+    	suggestionInbox.remove(suggestion);
+    	suggestion.getCamp().approveSuggestion(suggestion);
+    	suggestion.getPostedBy().earnPointsForActivity();
+    	suggestion.getPostedBy().removeSuggestion(suggestion);
+    	suggestion.getPostedBy().changeStatus(suggestion);
+    }
+    
+    public void viewSuggestions(Camp camp) {
+        List<Suggestion> suggestions = camp.getSuggestions();
+
+        if (suggestions.isEmpty()) {
+            System.out.println("No suggestions available for this camp.");
+        } else {
+            System.out.println("Suggestions for " + camp.getCampName() + ":");
+            for (int i = 0; i < suggestions.size(); i++) {
+                System.out.println((i + 1) + ". " + suggestions.get(i));
+            }
+        }
+    }
+   
+    
+    public void displaySuggestionInbox() {
+	    List<Query> queries = this.getSuggestionInbox();
+	    if(queries.isEmpty()) {
+	    	System.out.println("Your suggestion inbox is empty.");
+	    }
+	    else {
+	    	List<Enquiry> enquiries = new ArrayList<>();
+	    	List<Suggestion> suggestionList = new ArrayList<>();
+	    	for(Query query:queries) {
+			    if(query instanceof Enquiry) {
+			    	enquiries.add((Enquiry)query);
+			    }
+			    else if(query instanceof Suggestion) {
+			    	suggestionList.add((Suggestion)query);
+			    }
+	    	}
+	    	if(!enquiries.isEmpty()) {
+		    	System.out.println("Enquiries Inbox:");
+		    	for (int i = 0; i < enquiries.size(); i++) {
+	        		System.out.println((i + 1) + ". " + enquiries.get(i).getQuestion());
+		            if (enquiries.get(i).getResponse() != null) {
+		                System.out.println("Response: " + enquiries.get(i).getResponse());
+		            }
+		        }
+	    	}
+	    	if(!suggestionList.isEmpty()) {
+		    	System.out.println("Suggestion Inbox:");
+		    	for (int i = 0; i < suggestionList.size(); i++) {
+	        		System.out.println((i + 1) + ". " + suggestionList.get(i).getSuggestion());
+		            if (suggestionList.get(i).getResponse() != null) {
+		                System.out.println("Response: " + suggestionList.get(i).getResponse());
+		            }
+		        }
+	    	}
+	    	if(!enquiries.isEmpty()) {
+		    	String prompt = "Do you want to reply to any Enquiry? (Enter the number or 0 to skip)";
+		        int replyChoice =  inputErrorChecking.getUserInput(prompt, "int");
+	
+		        if (replyChoice > 0 && replyChoice <= enquiries.size()) {
+		        	ReplyHandler replyHandler = new EnquiryReply();
+		        	replyHandler.reply(enquiries.get(replyChoice - 1));
+		        }
+	    	}
+	    	if(!suggestionList.isEmpty()) {
+		        String prompt = "Do you want to approve any Suggestion? (Enter the number or 0 to skip)";
+		        int approveChoice = inputErrorChecking.getUserInput(prompt, "int");
+		        
+		        if (approveChoice > 0 && approveChoice <= suggestionList.size()) {
+		            this.approveSuggestion(suggestionList.get(approveChoice - 1));
+		        }
+	    	}
+	    }
+	    	
+	}
+    
+}

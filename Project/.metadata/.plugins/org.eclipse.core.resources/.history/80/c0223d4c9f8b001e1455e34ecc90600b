@@ -1,0 +1,6 @@
+package CAMs;
+
+public interface WithdrawFromCamps {
+	public boolean checkWithdrawFromCamp(Camp selectedCamp, Student student);
+	public void withdrawFromCamps(Student student);
+}

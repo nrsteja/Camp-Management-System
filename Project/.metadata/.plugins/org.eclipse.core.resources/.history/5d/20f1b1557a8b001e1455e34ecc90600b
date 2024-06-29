@@ -1,0 +1,9 @@
+package CAMs;
+
+import java.util.List;
+
+public interface AvailableCamps {
+	public List<Camp> getAvailableCampsToEnquire(List<Camp> allCamps, Student student);
+	public List<Camp> getAvailableCamps(List<Camp> allCamps, Student student);
+	public List<Camp> viewAvailableCamps(List<Camp> camps, Student student);
+}

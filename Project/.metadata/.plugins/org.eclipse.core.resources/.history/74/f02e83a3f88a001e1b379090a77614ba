@@ -1,0 +1,6 @@
+package CAMs;
+
+public interface RegistrationCamps {
+	public boolean checkRegisterForCamp(Camp selectedCamp, Student student);
+	public boolean registerForCamp(Student student);
+}

@@ -1,0 +1,158 @@
+package CAMs;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
+
+
+public abstract class User {
+	private static final String PASSWORD = "password";
+	private String name;
+	private String email;
+	private Schools faculty;
+    private String password;
+    private boolean firstTimeLogin = true;
+    
+    public static Scanner input = new Scanner(System.in);
+    public static InputErrorChecking inputErrorChecking = new InputErrorChecking();
+    
+    public User(String name, String email, Schools faculty) {
+        this.name = name;
+        this.email = email;
+        this.faculty = faculty;
+        this.password = PASSWORD;
+    }
+
+    public abstract void printMenu();
+    public abstract UserType getUserType();
+    public String getName() { return name.toUpperCase();}
+    public String getEmail() { return email;}
+    public Schools getFaculty() { return faculty;}
+    
+    public String getUserID() {
+		return (getEmail().substring(0, getEmail().lastIndexOf("@")).toUpperCase());
+	}
+    
+    public boolean getFirstTimeLogin() {
+    	return firstTimeLogin;
+    }
+    public void setFirstTimeLogin() {
+    	firstTimeLogin = false;
+    }
+    
+    public List<Camp> filterVisibility(List<Camp> storeCamps) {
+    	if(storeCamps.size() ==  1)
+    		return storeCamps;
+    	String prompt = "Do you want to filter the display(Y/N)?";
+    	String selection = inputErrorChecking.getUserInput(prompt, "yesNoInput");
+    	
+    	System.out.println("FILTER OPTIONS:");
+    	System.out.println("(1) Camp Name");
+    	System.out.println("(2) Date");
+    	System.out.println("(3) Location");
+    	System.out.println("(4) Remaining Slots");
+    	prompt = "Enter your choice: ";
+    	int choice = inputErrorChecking.getUserChoice(prompt, 1, 4);
+    	switch(choice) {
+	    	case 1: storeCamps.sort(Comparator.comparing(Camp::getCampName));
+	    		break;
+	    	case 2: System.out.println("FILTER OPTIONS PAGE 2:");
+		    	System.out.println("(1) Start Date");
+		    	System.out.println("(2) End Date");
+		    	System.out.println("(3) Registration Close Date");
+		    	prompt = "Enter your choice: ";
+		    	int choice2 = inputErrorChecking.getUserChoice(prompt, 1, 3);
+		    	switch(choice2) {
+			    	case 1: storeCamps.sort(Comparator.comparing(Camp::getOpenDate));
+			    		break;
+			    	case 2: storeCamps.sort(Comparator.comparing(Camp::getCloseDate));
+			    		break;
+			    	case 3: storeCamps.sort(Comparator.comparing(Camp::getRegCloseDate));
+			    		break;
+		    	}
+	    		break;
+	    	case 3: storeCamps.sort(Comparator.comparing(Camp::getLocation));
+	    		break;
+	    	case 4: storeCamps.sort(Comparator.comparingInt(Camp::getRemainingSlots));
+	    		break;
+    	}
+    	return storeCamps;
+    }
+    
+    public void printAvailableCamps(List <Camp> storedCamps) {
+    	int count = 1;
+    	for (Camp camp : storedCamps) {
+			System.out.println("(" + (count++) + ") Camp Name: " + camp.getCampName());
+			System.out.println("    Start Date: " + camp.getOpenDate());
+			System.out.println("    End Date: " + camp.getCloseDate());
+			System.out.println("    Registration Close Date: " + camp.getRegCloseDate());
+			System.out.println("    Location: " + camp.getLocation());
+			System.out.println("    Remaining Slots: " + camp.getRemainingSlots());
+    	}
+    }
+    
+    
+    
+    public String getPassword() { return password;}
+	
+    public static User getUsernamePassword(UserDataManager userDataManager) {
+    	List<User> users = userDataManager.getUserData();
+		String prompt;
+		boolean userFound = false;
+		boolean passwordMatch = false;
+		while(!userFound) {
+			prompt = "UserID: ";    //Get username
+			String userID = inputErrorChecking.getUserInput(prompt, "stringWithoutSplChar");
+			userID = userID.toUpperCase();   //UserID not case sensitive
+			for(User user: users) {
+				if(user.getUserID().equals(userID)) {
+					userFound = true;
+					while(!passwordMatch) {
+						String password = inputErrorChecking.getUserInput("Password: ", "string");
+						if(user.getPassword().equals(password)) {
+							System.out.println("Login Successful.");
+							if (user instanceof Student) {
+			                    System.out.println("Welcome student, " + user.getName()); // Handle student-specific functionality
+			                } 
+							else if (user instanceof Staff) {
+			                    System.out.println("Welcome staff, "+ user.getName());  // Handle staff-specific functionality
+			                }						
+							return user;
+						}
+						else {
+							System.out.println("Invalid Password!!! Try again");
+						}
+					}
+				}
+			}
+			if(!userFound) {
+				System.out.println("UserID invalid!!! Try again");
+			}
+		}
+		return null;
+	}
+    
+    public void setPassword(String newPassword) {
+    	this.password = newPassword;
+    }
+    
+	public void changePassword() {
+		boolean passwordMatch = false;
+		while(!passwordMatch) {
+			System.out.print("Enter your current password: ");
+			String currentPassword = input.next();
+			if(currentPassword.equals(this.getPassword())) {
+				passwordMatch = true;
+				System.out.print("Enter new Password: ");
+				String newPassword = input.next();
+				setPassword(newPassword);
+			}
+			else {
+				System.out.println("Sorry Invalid Password!!! Try again");
+			}
+		}
+		System.out.println("Password changed Successfully");
+		System.out.println("Please relogin to verify");
+	}
+	
+}

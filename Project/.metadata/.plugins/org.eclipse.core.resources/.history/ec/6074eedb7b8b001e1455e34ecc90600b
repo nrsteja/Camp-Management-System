@@ -1,0 +1,888 @@
+package CAMs;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+/**
+Includes information of all the camps including list of students registered as attendees and camp committee
+@author Jeevika, Mathangi, Teja, Vikaas
+@version 2.0
+@since 2023-11-19
+*/
+public class Camp {
+	/**
+	 * Integer value that holds the total number of camps. Initially this is zero.
+	 */
+	public int totalCamps = 0;
+	private String campName;
+	private String openDate;
+	private String closeDate;
+	private String regCloseDate;
+	/**
+	 * Represents the availability status of the camp.
+	 * This field is used to track the accessibility of the camp.
+	 *
+	 * @see CampAvailability
+	 */
+	private CampAvailability campAccessible;
+	private String location;
+	/**
+	 * Integer value that holds the available slots.
+	 */
+	public int slotsAvailable;
+	/**
+	 * Integer value that holds the total number of slots.
+	 */
+	public int totalSlots;
+	/**
+	 * Represents the staff that is incharge.
+	 */
+	public Staff staffIncharge;
+	private String description;
+	private List<Student> students;
+	private boolean visibility;
+	/**
+	 * Represents the school associated with a camp.
+	 * This field holds an instance of the {@link Schools} class.
+	 */
+	private Schools campSchool;
+	private List<Suggestion> approvedSuggestions = new ArrayList<>();
+	private List<Student> attendees;
+	private List<CampCommitteeMember> comMems = new ArrayList<>();
+    //private List<String> studentEnquiries;
+	private List<Enquiry> studentEnquiries;
+    private List<Suggestion> suggestions;
+    private List<String> replies;
+    private List<Student> studentsWhoWithdrawn = new ArrayList<>();
+
+    /**
+	 * Static Scanner object for reading input from the standard input (System.in).
+	 */
+	public static Scanner input = new Scanner(System.in);
+	/**
+	 * Static instance used to perform validation and error checking on user inputs.
+	 */
+	public static InputErrorChecking inputErrorChecking = new InputErrorChecking();
+	/**
+     * Constructs new Camp with the specified parameters.
+     *
+     * @param campName        The name of the camp.
+     * @param openDate        The opening date of the camp in the format "yyyy-mm-dd".
+     * @param closeDate       The closing date of the camp in the format "yyyy-mm-dd".
+     * @param regCloseDate    The registration closing date of the camp in the format "yyyy-mm-dd".
+     * @param campAccessible  The availability status of the camp.
+     * @param campSchool      The school associated with the camp.
+     * @param location        The location of the camp.
+     * @param totalSlots      The total number of slots available in the camp.
+     * @param description     The description of the camp.
+     * @param staffIncharge   The staff member in charge of the camp.
+     * @param visibility      The visibility status of the camp for students.
+     */
+	public Camp(String campName, String openDate, String closeDate, String regCloseDate, CampAvailability campAccessible, Schools campSchool, String location, int totalSlots, String description, Staff staffIncharge, boolean visibility) {
+		this.campName = campName;
+		this.openDate = openDate;
+		this.closeDate = closeDate;
+		this.regCloseDate = regCloseDate;
+		this.campAccessible = campAccessible;
+		this.campSchool = campSchool;
+		this.location = location;
+		this.totalSlots = totalSlots;
+		this.description = description;
+		this.staffIncharge = staffIncharge;
+		this.totalCamps+=1;
+		this.visibility = visibility;
+		
+		replies = new ArrayList<>();
+		attendees = new ArrayList<>();
+        studentEnquiries = new ArrayList<>();
+        suggestions = new ArrayList<>();
+        students = new ArrayList<>();
+	}
+	
+	/**
+	 * Retrieves list of committee members for the camp.
+	 *
+	 * @return The list of committee members.
+	 */
+	public List<CampCommitteeMember> getCommitteeMemberes() {
+		return this.comMems;
+	}
+	/**
+	 * Approves a suggestion for the camp.
+	 *
+	 * @param suggestion The suggestion to approve.
+	 */
+	public void approveSuggestion(Suggestion suggestion) {
+	    if (suggestions.contains(suggestion)) {
+	        suggestions.remove(suggestion); // Remove from the list of suggestions
+	        suggestion.setProccessStatus();
+	        approvedSuggestions.add(suggestion);
+	        System.out.println("Suggestion approved: " + suggestion.getSuggestion());
+	    } else {
+	        System.out.println("Suggestion not found in the list of suggestions.");
+	    }
+	}
+	/**
+	 * Adds an enquiry to the list of student enquiries for the camp.
+	 *
+	 * @param enquiry The enquiry to add.
+	 */
+	public void addEnquiry(Enquiry enquiry) {
+		studentEnquiries.add(enquiry);
+    }
+	/**
+	 * Retrieves the list of enquiries for the camp.
+	 *
+	 * @return The list of enquiries.
+	 */
+    public List<Enquiry> getEnquiries() {
+        return studentEnquiries;
+    }
+    /**
+     * Generates enquiry report for the camp and prompts the staff to choose the output format. It then writes the report to a file based on the selected format.
+     */
+    public void generateEnquiryReport() {
+        // Prompt staff to choose the output format
+        System.out.println("Choose the output format:");
+        System.out.println("1. TXT");
+        System.out.println("2. CSV");
+        int outputFormat = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 2);
+
+        // Generate the report based on the selected options
+        String reportTxt = generateEnquiryReportForTxt();
+
+        // Write the report to a file based on the selected format
+        if (outputFormat == 1) {
+            writeReportToTXT(reportTxt, this.getCampName() + "_enquiries_report.txt");
+        } else if (outputFormat == 2) {
+        	try {
+				writeEnquiryReportToCSV();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+    }
+    /**
+     * Generates a textual enquiry report for the camp.
+     *
+     * @return The generated performance report as a string.
+     */
+    public String generateEnquiryReportForTxt() {
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+
+        report.append("Students - Enquiries - Response:\n");
+        for (Enquiry enquirySubmitted : studentEnquiries) {
+            report.append(enquirySubmitted.getPostedBy().getName()+ " - " + enquirySubmitted.getQuestion() + " - " + enquirySubmitted.getResponse() + "\n"); //+ " (" + attendee.getStudentID() + ")\n"
+        }
+        return report.toString();
+    }
+    /**
+     * Writes enquiry report to a CSV file for the camp.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
+    public void writeEnquiryReportToCSV() throws IOException {
+        List<Student> attendees = this.getAttendees();
+        List<Enquiry> studentEnquiries = this.getStudentEnquiries();
+
+        // Create a FileWriter to write the CSV content to a file
+        FileWriter csvFileWriter = new FileWriter(this.getCampName() + "_enquiries_report.csv");
+
+        // Create a PrintWriter to simplify writing text
+        PrintWriter csvContent = new PrintWriter(csvFileWriter);
+
+        try {
+            // Write the header row
+        	csvContent.println("Camp Name,Start Date,End Date,Student submitted,Enquiry,Response");
+
+            // Write camp information
+            csvContent.print("\"" + this.getCampName() + "\",");
+            csvContent.print("\"" + this.getOpenDate() + "\",");
+            csvContent.print("\"" + this.getCloseDate() + "\",");
+
+            // Write committee members
+
+            for (Enquiry enquirySubmitted : studentEnquiries) {
+                csvContent.print("\"" + enquirySubmitted.getPostedBy().getName() + "\",");
+                csvContent.print("\"" + enquirySubmitted.getQuestion() + "\",");
+                csvContent.println("\"" + enquirySubmitted.getResponse() + "\",");
+                for (int j = 0; j < 3; j++) {
+                    csvContent.print(",");
+                }
+            }
+            System.out.println("CSV report saved to " + this.getCampName() + "_enquiries_report.csv");
+
+        } finally {
+            // Close the PrintWriter and FileWriter
+            csvContent.close();
+            csvFileWriter.close();
+        }
+    }
+    /**
+     * Generates performance report for the camp and prompts the staff to choose the output format. It then writes the report to a file based on the selected format.
+     */
+    public void generatePerformanceReport() {
+        // Prompt staff to choose the output format
+        System.out.println("Choose the output format:");
+        System.out.println("1. TXT");
+        System.out.println("2. CSV");
+        int outputFormat = input.nextInt();
+
+        // Generate the report based on the selected options
+        String reportTxt = generatePerformanceReportForTxt();
+
+        // Write the report to a file based on the selected format
+        if (outputFormat == 1) {
+            writeReportToTXT(reportTxt, this.getCampName() + "_perfomance_report.txt");
+        } else if (outputFormat == 2) {
+        	try {
+				writePerformanceReportToCSV();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+    }
+    /**
+     * Generates a textual performance report for the camp.
+     *
+     * @return The generated performance report as a string.
+     */
+    public String generatePerformanceReportForTxt() {
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+
+        report.append("Committee Members (Points):\n");
+        for (CampCommitteeMember comMems : comMembers) {
+            report.append(comMems.getName()+ " (" + comMems.getPoints() + ")\n"); //+ " (" + attendee.getStudentID() + ")\n"
+        }
+        return report.toString();
+    }
+    /**
+     * Writes performance report to a CSV file for the camp.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    public void writePerformanceReportToCSV() throws IOException {
+        List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Create a FileWriter to write the CSV content to a file
+        FileWriter csvFileWriter = new FileWriter(this.getCampName() + "_performance_report.csv");
+
+        // Create a PrintWriter to simplify writing text
+        PrintWriter csvContent = new PrintWriter(csvFileWriter);
+
+        try {
+            // Write the header row
+        	csvContent.println("Camp Name,Start Date,End Date,Committee Members, Points");
+
+            // Write camp information
+            csvContent.print("\"" + this.getCampName() + "\",");
+            csvContent.print("\"" + this.getOpenDate() + "\",");
+            csvContent.print("\"" + this.getCloseDate() + "\",");
+
+            // Write committee members
+
+            for (CampCommitteeMember comMems : comMembers) {
+                csvContent.print("\"" + comMems.getName() + "\",");
+                csvContent.print("\"" + comMems.getPoints() + "\",");
+                if (comMembers.indexOf(comMems) < comMembers.size() - 1) {
+                    csvContent.print(","); // Add a comma to separate committee members
+                }  
+            }
+            System.out.println("CSV report saved to " + this.getCampName() + "_performance_report.csv");
+
+        } finally {
+            // Close the PrintWriter and FileWriter
+            csvContent.close();
+            csvFileWriter.close();
+        }
+    }
+    /**
+     * Generates student attendance report for the camp and prompts the staff to choose the output format and content format.It then writes the report to a file based on the selected format.
+     */
+    public void generateStudentAttendanceReport() {
+    	// Prompt staff to choose the output format
+        System.out.println("Choose the output format:");
+        System.out.println("1. TXT");
+        System.out.println("2. CSV");
+        int outputFormat = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 2);
+        
+        System.out.println("Choose the content format:");
+        System.out.println("1. ATTENDEES");
+        System.out.println("2. COMMITTEE MEMBERS");
+        System.out.println("3. PRINT BOTH");
+        int outputFormat2 = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 3);
+
+        
+
+        // Write the report to a file based on the selected format
+        if (outputFormat == 1) {
+        	// Generate the report based on the selected options
+            String reportTxt = generateStudentAttendanceReportForTxt(outputFormat2);
+            writeReportToTXT(reportTxt, this.getCampName() + "_attendance_report.txt");
+        } else if (outputFormat == 2) {
+        	try {
+				writeStudentAttendanceReportToCSV(outputFormat2);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+    }
+    /**
+     * Writes report to a TXT file for the camp.
+     *
+     * @param report    The report content to write.
+     * @param fileName  The name of the file to write the report to.
+     */
+    public void writeReportToTXT(String report, String fileName) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.println(report);
+            System.out.println("TXT report saved to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    /**
+     * Generates a student attendance report for the camp based on specified output format.
+     *
+     * @param outputFormat2 The format for the output (1 for attendees, 2 for committee members, 3 for both).
+     * @return The generated attendance report as a string.
+     */
+    public String generateStudentAttendanceReportForTxt(int outputFormat2) {
+        List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMembers = this.getCommitteeMemberes();
+
+        // Generate the report as a string (customize based on your needs)
+        StringBuilder report = new StringBuilder();
+        report.append("Camp Name: " + this.getCampName() + "\n");
+        report.append("Date: " + this.getOpenDate() + " to " + this.getCloseDate() + "\n");
+        if(outputFormat2 == 1 || outputFormat2 == 3) {
+	        report.append("Attendees:\n");
+	        for (Student attendee : attendees) {
+	            report.append(attendee.getName() + "\n"); //+ " (" + attendee.getStudentID() + ")\n"
+	        }
+        }
+	    if(outputFormat2 == 2 || outputFormat2 == 3) {
+	        report.append("\n\nCommittee Members:\n");
+	        if(comMembers.isEmpty())
+	    		report.append("No Committee Members for this camp yet");
+	        else {
+		        for (CampCommitteeMember comMems : comMembers) {
+		            report.append(comMems.getName()); //+ " (" + attendee.getStudentID() + ")\n"
+		        }
+	        }
+	    }
+        return report.toString();
+    }
+    /**
+     * Writes student attendance report to a CSV file based on the specified output format.
+     *
+     * @param outputFormat2 The format for the output (1 for attendees, 2 for committee members, 3 for both).
+     * @throws IOException If an I/O error occurs.
+     */
+    public void writeStudentAttendanceReportToCSV(int outputFormat2) throws IOException {
+    	List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMembers = this.getCommitteeMembers();
+
+        // Create a FileWriter to write the CSV content to a file
+        FileWriter csvFileWriter = new FileWriter(this.getCampName() + "_attendance_report.csv");
+
+        // Create a PrintWriter to simplify writing text
+        PrintWriter csvContent = new PrintWriter(csvFileWriter);
+
+        try {
+            // Write the header row
+            if (outputFormat2 == 3)
+                csvContent.println("Camp Name,Start Date,End Date,Attendees,Committee Members");
+            else if (outputFormat2 == 2)
+                csvContent.println("Camp Name,Start Date,End Date,Committee Members");
+            else
+                csvContent.println("Camp Name,Start Date,End Date,Attendees");
+
+            // Write camp information
+//            csvContent.print("\"" + this.getCampName() + "\",");
+//            csvContent.print("\"" + this.getOpenDate() + "\",");
+//            csvContent.print("\"" + this.getCloseDate() + "\",");
+            csvContent.print(this.getCampName() + ",");
+            csvContent.print(this.getOpenDate() + ",");
+            csvContent.print(this.getCloseDate() + ",");
+
+            // Write attendees
+            if(outputFormat2 == 1) {
+                for (Student attendee : attendees) {
+                    csvContent.println(attendee.getName());
+                	for(int i=0; i<3; i++)
+                		csvContent.print(",");   	
+                }
+            }
+            
+
+            // Write committee members
+            else if(outputFormat2 == 2) {
+                for (CampCommitteeMember comMems : comMembers) {
+                    csvContent.println(comMems.getName() + ",");
+                    for(int i=0; i<3; i++)
+                		csvContent.print(",");
+//                    else {
+//                    	for(int i=0; i<4; i++)
+//	                		csvContent.print(",");
+//                    }
+                }
+            }
+            if (outputFormat2 == 3) {
+                int maxSize = Math.max(attendees.size(), comMembers.size());
+
+                for (int i = 0; i < maxSize; i++) {
+                    String attendeeName = (i < attendees.size()) ? attendees.get(i).getName() : "";
+                    String comMemberName = (i < comMembers.size()) ? comMembers.get(i).getName() : "";
+
+                    csvContent.print(attendeeName + ",");
+                    csvContent.println(comMemberName + ",");
+
+                    // Add extra columns if needed
+                    for (int j = 0; j < 3; j++) {
+                        csvContent.print(",");
+                    }
+                }
+            }
+
+            // Print a newline after writing attendees and/or committee members
+            csvContent.println();
+
+            System.out.println("CSV report saved to " + this.getCampName() + "_attendance_report.csv");
+        } finally {
+            // Close the PrintWriter and FileWriter
+            csvContent.close();
+            csvFileWriter.close();
+        }
+    }
+    /**
+     * Retrieves remaining available slots for the camp.
+     *
+     * @return The number of remaining slots.
+     */
+	public int getRemainingSlots() {
+        // Calculate and return the remaining slots
+        return totalSlots - attendees.size();
+    }
+	/**
+	 * Adds a camp committee member to the list of committee members.
+	 *
+	 * @param comMem The committee member to add.
+	 */
+	public void addCommitteeMember(CampCommitteeMember comMem) {
+		this.comMems.add(comMem);
+		//this.committeMember = comMem;
+	}
+	/**
+	 * Checks if camp registration is currently open based on the registration closing date.
+	 *
+	 * @return True if registration is open, false otherwise.
+	 */
+	public boolean isRegistrationOpen() {
+	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    try {
+	        Date currentDate = new Date();  // Get the current date
+	        Date registrationClosingDate = dateFormat.parse(regCloseDate);
+
+	        // Compare the current date with the registration closing date
+	        if (currentDate.before(registrationClosingDate)) {
+	            return true;  // Registration is open
+	        }
+	    } catch (ParseException e) {
+	        e.printStackTrace(); // Handle the parse exception
+	    }
+	    return false;  // Registration is closed
+	}
+	/**
+	 * Retrieves the list of committee members for the camp.
+	 *
+	 * @return The list of committee members.
+	 */
+	public List<CampCommitteeMember> getCommitteeMembers() {
+		return comMems;
+	}
+	/**
+	 * Retrieves the list of replies for the camp.
+	 *
+	 * @return The list of replies.
+	 */
+	public List<String> getReplies() {
+        return replies;
+    }
+	/**
+	 * Stores a reply in the list of replies for the camp.
+	 *
+	 * @param reply The reply to store.
+	 */
+    public void storeReply(String reply) {
+        replies.add(reply);
+    }
+    /**
+     * Retrieves the list of attendees for the camp.
+     *
+     * @return The list of attendees.
+     */
+	public List<Student> getAttendees() {
+        return attendees;
+    }
+	/**
+	 * Adds a student as an attendee to the camp.
+	 *
+	 * @param student The student to add as an attendee.
+	 */
+    public void addAttendee(Student student) {
+        attendees.add(student);
+    }
+    /**
+     * Removes a student from the list of attendees for the camp.
+     *
+     * @param student The student to remove.
+     */
+    public void removeAttendee(Student student) {
+        attendees.remove(student);
+    }
+    /**
+     * Retrieves the list of student enquiries for the camp.
+     *
+     * @return The list of student enquiries.
+     */
+    public List<Enquiry> getStudentEnquiries() {
+        return studentEnquiries;
+    }
+    /**
+     * Retrieves the list of suggestions for the camp.
+     *
+     * @return The list of suggestions.
+     */
+    public List<Suggestion> getSuggestions() {
+        return suggestions;
+    }
+    /**
+     * Adds a student enquiry to the list of enquiries for the camp.
+     *
+     * @param enquiry The enquiry to add.
+     */
+    public void addStudentEnquiry(Enquiry enquiry) {
+        studentEnquiries.add(enquiry);
+        staffIncharge.addSuggestionToInbox(enquiry);
+    }
+    
+//    public void removeEnquiry(Enquiry enquiry) {
+//    	studentEnquiries.remove(enquiry);
+//    }
+    /**
+     * Removes a student enquiry from the list of enquiries for the camp.
+     *
+     * @param enquiry The enquiry to remove.
+     */
+    public void removeStudentEnquiry(Enquiry enquiry) {
+        //studentEnquiries.remove(enquiry);
+        //enquiry.getPostedBy().removeStudentEnquiry(enquiry);
+        staffIncharge.removeSuggestionFromInbox(enquiry);
+    }
+    /**
+     * Adds a suggestion to the list of suggestions for the camp.
+     *
+     * @param suggestion The suggestion to add.
+     */
+    public void addSuggestion(Suggestion suggestion) {
+        suggestions.add(suggestion);
+        //committeeMember.addSuggestion(suggestion);
+        staffIncharge.addSuggestionToInbox(suggestion);
+    }
+    /**
+     * Checks if two date ranges overlap.
+     *
+     * @param start1 The start date of the first range.
+     * @param end1   The end date of the first range.
+     * @param start2 The start date of the second range.
+     * @param end2   The end date of the second range.
+     * @return True if the date ranges overlap, false otherwise.
+     * @see #doDatesOverlap(Date, Date, Date, Date)
+     */
+    private boolean doDatesOverlap(Date start1, Date end1, Date start2, Date end2) {
+        return start1.before(end2) && start2.before(end1);
+    }
+	
+	//Accessor or Getter
+    /**
+     * Retrieves the name of the camp.
+     *
+     * @return The name of the camp.
+     */
+	public String getCampName() { return this.campName;}
+	
+	/**
+	 * Retrieves the opening date of the camp.
+	 *
+	 * @return The opening date of the camp.
+	 */
+	public String getOpenDate() {
+	    return this.openDate;
+	}
+
+	/**
+	 * Retrieves the closing date of the camp.
+	 *
+	 * @return The closing date of the camp.
+	 */
+	public String getCloseDate() {
+	    return this.closeDate;
+	}
+
+	/**
+	 * Retrieves the school associated with the camp.
+	 *
+	 * @return The school associated with the camp.
+	 */
+	public Schools getCampSchool() {
+	    return this.campSchool;
+	}
+
+	/**
+	 * Retrieves the registration closing date of the camp.
+	 *
+	 * @return The registration closing date of the camp.
+	 */
+	public String getRegCloseDate() {
+	    return this.regCloseDate;
+	}
+
+	/**
+	 * Retrieves the accessibility status of the camp.
+	 *
+	 * @return The accessibility status of the camp.
+	 */
+	public CampAvailability getCampAccessible() {
+	    return this.campAccessible;
+	}
+
+	/**
+	 * Retrieves the location of the camp.
+	 *
+	 * @return The location of the camp.
+	 */
+	public String getlocation() {
+	    return this.location;
+	}
+
+	/**
+	 * Retrieves the total number of slots for the camp.
+	 *
+	 * @return The total number of slots for the camp.
+	 */
+	public int getTotalSlots() {
+	    return this.totalSlots;
+	}
+
+	/**
+	 * Retrieves the staff member in charge of the camp.
+	 *
+	 * @return The staff member in charge of the camp.
+	 */
+	public Staff getStaffIncharge() {
+	    return this.staffIncharge;
+	}
+
+	/**
+	 * Retrieves the description of the camp.
+	 *
+	 * @return The description of the camp.
+	 */
+	public String getDescription() {
+	    return this.description;
+	}
+
+	/**
+	 * Retrieves the visibility status of the camp for students.
+	 *
+	 * @return The visibility status of the camp for students.
+	 */
+	public boolean getVisibility() {
+	    return this.visibility;
+	}
+	
+	//Mutator or Setters
+	
+	/**
+	 * Sets the name of the camp.
+	 *
+	 * @param campName The new name for the camp.
+	 */
+	public void setCampName(String campName) {
+	    this.campName = campName;
+	}
+
+	/**
+	 * Sets the opening date of the camp.
+	 *
+	 * @param openDate The new opening date for the camp.
+	 */
+	public void setOpenDate(String openDate) {
+	    this.openDate = openDate;
+	}
+
+	/**
+	 * Sets the closing date of the camp.
+	 *
+	 * @param closeDate The new closing date for the camp.
+	 */
+	public void setCloseDate(String closeDate) {
+	    this.closeDate = closeDate;
+	}
+
+	/**
+	 * Sets the school associated with the camp.
+	 *
+	 * @param campSchool The new school associated with the camp.
+	 */
+	public void setCampSchool(Schools campSchool) {
+	    this.campSchool = campSchool;
+	}
+
+	/**
+	 * Sets the registration closing date of the camp.
+	 *
+	 * @param regCloseDate The new registration closing date for the camp.
+	 */
+	public void setRegCloseDate(String regCloseDate) {
+	    this.regCloseDate = regCloseDate;
+	}
+
+	/**
+	 * Sets the accessibility status of the camp.
+	 *
+	 * @param campAccessible The new accessibility status for the camp.
+	 */
+	public void setCampAccessible(CampAvailability campAccessible) {
+	    this.campAccessible = campAccessible;
+	}
+
+	/**
+	 * Sets the location of the camp.
+	 *
+	 * @param location The new location for the camp.
+	 */
+	public void setlocation(String location) {
+	    this.location = location;
+	}
+
+	/**
+	 * Sets the total number of slots for the camp.
+	 *
+	 * @param totalSlots The new total number of slots for the camp.
+	 */
+	public void setTotalSlots(int totalSlots) {
+	    this.totalSlots = totalSlots;
+	}
+
+	/**
+	 * Sets the staff member in charge of the camp.
+	 *
+	 * @param staffIncharge The new staff member in charge of the camp.
+	 */
+	public void setStaffIncharge(Staff staffIncharge) {
+	    this.staffIncharge = staffIncharge;
+	}
+
+	/**
+	 * Sets the description of the camp.
+	 *
+	 * @param description The new description for the camp.
+	 */
+	public void setDescription(String description) {
+	    this.description = description;
+	}
+
+	/**
+	 * Sets the visibility status of the camp for students.
+	 *
+	 * @param visibility The new visibility status for the camp.
+	 */
+	public void setVisiblity(boolean visibility) {
+	    this.visibility = visibility;
+	}
+	/**
+	 * Retrieves the total number of camps.
+	 *
+	 * @return The total number of camps.
+	 */
+	public int noOfCamps() { return totalCamps;}
+	/**
+	 * Displays the camp editing menu.
+	 */
+	public void campMenu() {
+		System.out.println("Edit Menu");
+		System.out.println("(1) Camp Name");
+		System.out.println("(2) Opening Date(yyyy-mm-dd)");
+		System.out.println("(3) Closing Date(yyyy-mm-dd)");
+		System.out.println("(4) Registration closing Date(yyyy-mm-dd)");
+		System.out.println("(5) Camp Availability");
+		System.out.println("(6) Total Slots");
+		System.out.println("(7) Location");
+		System.out.println("(8) Description");
+		System.out.println("(9) Visibility for Students");
+		System.out.println("(10) Exit");
+	}
+	/**
+	 * Displays information about the camp.
+	 */
+	public void campInfo() {
+		System.out.println("CampName: " + this.campName);
+		System.out.println("Dates:\nFrom: " + this.openDate + " To: " + this.closeDate);
+		System.out.println("Registration Closing Date: " + this.regCloseDate);
+		System.out.println("Camp Availability: " + this.campAccessible);
+		if(this.campAccessible == CampAvailability.SCHOOL)
+			System.out.println("Camp School: " + this.campSchool);
+		System.out.println("Location: " + this.location);
+		System.out.println("Total Slots: " + this.totalSlots);
+		System.out.println("Slots Available: " + this.getRemainingSlots());
+		System.out.println("Description: " + this.description);
+		System.out.println("Staff Incharge: " + this.staffIncharge.getName());
+	}
+	/**
+	 * Displays a list of camp attendees and committee members.
+	 */
+	public void campList() {
+        List<Student> attendees = this.getAttendees();
+        List<CampCommitteeMember> comMems = this.getCommitteeMembers();
+        if(attendees.isEmpty() && comMems.isEmpty())
+        	System.out.println("Sorry, no one have registered yet!!!");
+        else {
+        	if(attendees.size() != 0) {
+	            System.out.println("List of attendess:");
+	            for(int i=0;i<attendees.size();i++) {
+	            	System.out.println("(" + (i+1) + ")" + attendees.get(i).getName());
+	            }
+        	}
+            if(comMems.size() != 0) {
+	            System.out.println("List of Committee Members:");
+	            for(int i=0;i<comMems.size();i++) {
+	            	System.out.println("(" + (i+1) + ")" + comMems.get(i).getName());
+	            }
+            }
+        }
+	}
+	
+	
+}

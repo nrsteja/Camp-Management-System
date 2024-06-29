@@ -1,0 +1,394 @@
+package CAMs;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CampCommitteeMember extends Student {
+    private int points;
+    private List<Camp> registeredCamps = new ArrayList<>();
+    private List<Enquiry> studentEnquiries = new ArrayList<>();
+    private List<Camp> withdrawnCamps = new ArrayList<>();
+    private List<Camp> availableCamps;
+    private List<Suggestion> suggestionsSubmitted = new ArrayList<>();
+    private Camp committeeCamp;
+    
+    public static InputErrorChecking inputErrorChecking = new InputErrorChecking();
+    
+    public CampCommitteeMember(String name, String email, Schools faculty, List<Camp> getRegisteredCamps, List<Enquiry> getStudentEnquiries, List<Camp> getwithdrawnCamps) {
+        super(name, email, faculty);
+        this.registeredCamps = getRegisteredCamps;
+        this.studentEnquiries = getStudentEnquiries;
+        this.withdrawnCamps = getwithdrawnCamps;
+        points = 0; // Initialize points to 0 for a new committee member
+    }
+    
+    public Camp getCommitteeCamp() {
+    	return this.committeeCamp;
+    }
+    
+    public void setCommitteeCamp(Camp camp) {
+    	this.committeeCamp = camp;
+    }
+    
+    public int getPoints() {
+    	return this.points;
+    }
+    
+    public boolean hasDateClash(Camp selectedCamp) {
+    	return super.hasDateClash(selectedCamp);
+    }
+    
+	public boolean checkRegisterForCamp(Camp selectedCamp) {
+	    if (selectedCamp.isRegistrationOpen() && !isRegisteredForCamp(selectedCamp)) {
+	        if (selectedCamp.getRemainingSlots() > 0) {
+	            // Check for date clashes with already registered camps
+	            if (!hasDateClash(selectedCamp)) {
+	                // Check if the camp is in the list of withdrawn camps
+	                if (!hasWithdrawnFromCamp(selectedCamp)) {
+	                    return true;
+	                } else {
+	                    System.out.println("You have previously withdrawn from this camp and cannot register again.");
+	                }
+	            } else {
+	                System.out.println("You have a date clash with another registered camp.");
+	            }
+	        } else {
+	            System.out.println("The camp is full, no more slots available for registration.");
+	        }
+	    } else if (isRegisteredForCamp(selectedCamp)) {
+	        System.out.println("You are already registered for this camp.");
+	    } else if (!selectedCamp.isRegistrationOpen()) {
+	        System.out.println("Registration for this camp is closed.");
+	    }
+	    return false;
+	}
+    
+    
+    
+    public List<Camp> getRegisteredCamps() {
+        return registeredCamps;
+    }
+    public void setRegisteredCamps() {
+    	List<Camp> oldCamps = super.getRegisteredCamps();
+    	if (oldCamps.isEmpty()) {
+    		System.out.println("Empty");
+    	}
+    	else
+    		System.out.println("Not Empty");
+        this.registeredCamps = super.getRegisteredCamps();
+    }
+    
+	public void setCampCommitteeStatus(Student student) {
+		this.setIsCampCommitteeMember();
+		Camp selectedCamp = student.getCampToConvertAsCommittee();
+		selectedCamp.addCommitteeMember(this);
+		selectedCamp.removeAttendee(student);
+		
+	}
+    
+    
+    public List<Enquiry> getStudentEnquiries() {
+        return studentEnquiries;
+    }
+    public void setStudentEnquiries() {
+        this.studentEnquiries = super.getStudentEnquiries();
+    }
+    
+    public List<Camp> getWithdrawnCamps() {
+        return withdrawnCamps;
+    }
+    public void setWithdrawnCamps() {
+        this.withdrawnCamps = super.getWithdrawnCamps();
+    }
+    
+    
+    
+    public boolean isRegisteredForCamp(Camp camp) {
+        return registeredCamps.contains(camp);
+    }
+
+    // View the camps the student is registered for and their roles
+    public void viewRegisteredCamps() {
+        System.out.println("Camps registered by " + this.getName() + ":");
+        List<Camp> RegisteredCamps = getRegisteredCamps();
+        int count = 1;
+        for (Camp camp : RegisteredCamps) {
+            System.out.println("(" + (count++) +") Camp Name: " + camp.getCampName());
+            System.out.println("    Role: " + (this.isCampCommitteeMember(camp) ? "Camp Committee" : "Attendee"));
+            // You can add more camp details here
+        }
+    }
+    
+    public boolean isCampMember(Camp camp) {
+		List<Student> registeredStudents = camp.getAttendees();
+		List<CampCommitteeMember> registeredMember = camp.getCommitteeMemberes();
+		for(CampCommitteeMember comMember: registeredMember) {
+			if(comMember.equals(this)) {
+				return true;
+			}
+		}
+		for(Student students: registeredStudents) {
+			if(students.equals(this)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+    
+    public boolean viewCampRegistrationDetails() {
+    	if (getRegisteredCamps().isEmpty()) {
+            System.out.println("You are not registered for any camps.");
+            return false;
+        } 
+    	else {
+    		viewRegisteredCamps();
+        }
+    	return true;
+    }
+    
+    public void viewSuggestions() {
+        System.out.println("Your Suggestions:");
+        for (Suggestion suggestion : suggestionsSubmitted) {
+            System.out.println("Suggestions: " + suggestion.getSuggestion());
+            System.out.println("Processed: " + (suggestion.isProcessed() ? "Yes" : "No"));
+            System.out.println(); // Separate each inquiry
+        }
+    }
+    
+    public void printMenu() {
+		System.out.println("**********COMMITTEE MEMBER LOGIN MENU**********");
+		System.out.println("(1) Change Password");
+		System.out.println("(2) Camps Availability");
+		System.out.println("(3) Camps to Register");
+		System.out.println("(4) Enquiries Page");
+		System.out.println("(5) My Camp Registration Details");
+		System.out.println("(6) Replies to enquiries submitted");
+		System.out.println("(7) Request to withdraw from Camps");
+		System.out.println("(8) View Camp Committee Status");
+		System.out.println("(9) Report Generation");
+		System.out.println("(10) Log Out");
+	}
+
+    // Camp committee members can view the details of the camp they have registered for
+    public void viewCampDetails(Camp camp) {
+        if (this.isCampCommitteeMember(camp)) {
+            // Allow committee members to view camp details
+            camp.campInfo();
+        } else {
+            System.out.println("You are not a committee member for this camp.");
+        }
+    }
+
+	public boolean isCampCommitteeMember(Camp camp) {
+		List<CampCommitteeMember> committeMembers = camp.getCommitteeMembers();
+		if(committeMembers.isEmpty()) {
+			return false;
+		}
+		else {
+			for(CampCommitteeMember members: committeMembers) {
+				if(members.equals(this))
+					return true;
+			}
+		}
+		return false;
+	}
+
+    // Camp committee members can view and reply to enquiries from students
+    public void viewAndReplyToEnquiries(Camp camp) {
+        if (this.isCampCommitteeMember(camp)) {
+            List<Enquiry> enquiries = camp.getEnquiries();
+            
+            System.out.println("List of Enquiries");
+            int count = 1;
+            for(Enquiry enquiry: enquiries) {
+    			if(enquiry.getProccessStatus() == false) {
+    				System.out.println("(" + (count++) + ")" + enquiry.getQuestion());
+    			}
+    		}
+            String prompt = "Enter your choice";
+            int selection = inputErrorChecking.getUserChoice(prompt, 1, enquiries.size());
+            count = 0;
+            for (Enquiry enquiry : enquiries) {
+                // View the inquiry
+            	count++;
+            	if(count == selection) {
+	            	if(enquiry.getProccessStatus() == false) {
+		                System.out.println("Enquiry: " + enquiry.getQuestion());
+		
+		                // Reply to the inquiry
+		                prompt = "Enter your response: ";
+		                String response = inputErrorChecking.getUserInput(prompt, "string");
+		                enquiry.setResponse(response);
+		                String reply = enquiry.getResponse();
+		                enquiry.setProccessStatus();
+		                System.out.println("Reply: " + reply);
+		                points++; // Award one point for replying to an inquiry
+		                camp.removeStudentEnquiry(enquiry);
+	            	}
+	            	else {
+	            		System.out.println("No enquiries pending!!!");
+	            	}
+            	}
+            }
+        } else {
+            System.out.println("You are not a committee member for this camp.");
+        }
+    }
+
+    public void earnPointsForActivity() {
+        points++;
+    }
+
+    public List<Suggestion> getSuggestions() {
+        // Return the list of suggestions made by the camp committee member
+        return suggestionsSubmitted;
+    }
+    
+    public void addSuggestions(Suggestion suggestion) {
+    	suggestionsSubmitted.add(suggestion);
+    }
+    
+    // Camp committee members can submit suggestions for changes to camp details
+    public void submitSuggestion(Staff staff, Camp camp, Suggestion suggestion) {
+    	camp.addSuggestion(suggestion);
+    	suggestionsSubmitted.add(suggestion);
+        System.out.println("Suggestion submitted successfully.");
+        points++; // Award one point for submitting a suggestion
+    }
+    
+    // Camp committee members can view, edit, and delete their own suggestions
+    public void editSuggestion(Camp camp, Suggestion suggestion, String newSuggestion) {
+        List<Suggestion> suggestions = camp.getSuggestions();
+        
+        if (suggestions.contains(suggestion)) {
+            if (camp.getStaffIncharge().equals(this)) {
+                // Only allow editing if the staff in charge approves
+            	suggestion.setSuggestion(newSuggestion);
+            } else {
+                System.out.println("You are not authorized to edit this suggestion.");
+            }
+        } else {
+            System.out.println("Suggestion not found in the list of suggestions.");
+        }
+    }
+    
+    public void removeSuggestion(Suggestion suggestion) {
+    	suggestionsSubmitted.remove(suggestion);
+    }
+    public void changeStatus(Suggestion suggestion) {
+    	for(Suggestion suggest: suggestionsSubmitted) {
+    		if(suggest.equals(suggestion)) {
+    			suggest.setProccessStatus();
+    		}
+    	}
+    }
+    
+    public void deleteSuggestion(Camp camp, Suggestion suggestion) {
+        List<Suggestion> suggestions = camp.getSuggestions();
+
+        if (suggestions.contains(suggestion)) {
+            if (camp.getStaffIncharge().equals(this)) {
+                // Only allow deletion if the staff in charge approves
+                //suggestions.remove(suggestion);
+            	removeSuggestion(suggestion);
+            	camp.deleteSuggestion(suggestion);
+            } else {
+                System.out.println("You are not authorized to delete this suggestion.");
+            }
+        } else {
+            System.out.println("Suggestion not found in the list of suggestions.");
+        }
+    }
+    
+    public void addRegisteredCamps(Camp selectedCamp) {
+		registeredCamps.add(selectedCamp);
+	}
+    
+    public void removeRegisteredCamps(Camp selectedCamp) {
+    	registeredCamps.remove(selectedCamp);
+    }
+
+    public void suggestionsAuthority(Camp selectedCamp) {
+    	this.enquiryMenu();
+    	int inquiryActionChoice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 7);
+    	switch (inquiryActionChoice) {
+	    	case 1: String prompt = "Enter your Suggestion for the camp: ";
+	        	String suggestText = inputErrorChecking.getUserInput(prompt, "string");
+	        	Suggestion suggest = new Suggestion(suggestText, this);
+	        	suggest.setCamp(selectedCamp);
+	        	this.submitSuggestion(selectedCamp.getStaffIncharge(), selectedCamp, suggest);
+	    		break;
+	    	case 2:
+	        	if(suggestionsSubmitted.isEmpty())
+	        		System.out.println("Sorry no suggestions given to display");
+	        	else
+	        		this.viewSuggestions();
+	            break;
+	    	case 3:
+				if (suggestionsSubmitted.isEmpty()) {
+				    System.out.println("No suggestions available to edit.");
+				} 
+				else {
+				    System.out.println("Available suggestions:");
+					for (int i = 0; i < suggestionsSubmitted.size(); i++) {
+					    System.out.println((i + 1) + ". " + suggestionsSubmitted.get(i).getSuggestion());
+					}
+					prompt = "Enter the number of the suggestion you want to edit: ";
+					int editChoice = inputErrorChecking.getUserChoice(prompt, 1, suggestionsSubmitted.size());
+					prompt = "Enter the new text for the inquiry: ";
+					String newInquiryText = inputErrorChecking.getUserInput(prompt, "string");
+					this.editSuggestion(selectedCamp, suggestionsSubmitted.get(editChoice - 1), newInquiryText);
+				}
+				break;
+	    	case 4:
+	    	    if (suggestionsSubmitted.isEmpty()) {
+	    	        System.out.println("No suggestions available to delete.");
+	    	    } else {
+	    	        System.out.println("Available suggestions:");
+	    	        for (int i = 0; i < suggestionsSubmitted.size(); i++) {
+	    	            System.out.println((i + 1) + ". " + suggestionsSubmitted.get(i).getSuggestion());
+	    	        }
+	    	        prompt = "Enter the number of the suggestion you want to delete: ";
+	    	        int deleteChoice = inputErrorChecking.getUserChoice(prompt, 1, suggestionsSubmitted.size());
+	    	        this.deleteSuggestion(selectedCamp, suggestionsSubmitted.get(deleteChoice - 1));
+	    	    }
+	    	    break;
+	    	case 5: List<Enquiry> campEnquiries = selectedCamp.getEnquiries();
+	    		int count = 1;
+	    		boolean found = false;
+	    		for(Enquiry enquiry: campEnquiries) {
+	    			if(enquiry.getProccessStatus() == false) {
+	    				found = true;
+	    				System.out.println("(" + (count++) + ")" + enquiry.getQuestion());
+	    			}
+	    		}
+	    		if(!found)
+	    			System.out.println("No enquirires pending to reply!");
+	    		break;
+	    	case 6: this.viewAndReplyToEnquiries(selectedCamp);
+	    		
+	    		break;
+	    	case 7:
+	          // Return to the main menu
+	          break;
+
+    	}
+    	
+    }
+
+    
+    
+    public void enquiryMenu() {
+    	System.out.println("1. Add Suggestions");
+        System.out.println("2. View Suggestions");
+        System.out.println("3. Edit Suggestions");
+        System.out.println("4. Delete Suggestions");
+        System.out.println("5. View Enquiries");
+        System.out.println("6. Reply Enquiries");
+        System.out.println("7. Back to Main Menu");
+    }
+    
+}

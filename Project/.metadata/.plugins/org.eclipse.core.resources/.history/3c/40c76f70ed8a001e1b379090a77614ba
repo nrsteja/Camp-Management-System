@@ -1,0 +1,7 @@
+package CAMs;
+
+import java.util.List;
+
+public interface ViewingCamps {
+	public List<String> listCreatedCamps(Staff staff)
+}

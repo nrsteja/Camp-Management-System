@@ -1,0 +1,548 @@
+package CAMs;
+import java.util.Scanner;
+import java.io.FileReader;  // Import the File class
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.io.BufferedReader;
+import java.io.*;
+
+enum UserType {
+    STUDENT, STAFF
+}
+
+enum CampAvailability {
+	SCHOOL, NTU
+}
+
+enum Schools {
+	SCSE, ADM, EEE, NBS, SSS
+}
+
+public class CAMs {
+	public static Scanner input = new Scanner(System.in);
+	public static InputErrorChecking inputErrorChecking = new InputErrorChecking();
+	//public static Camp committeeMemberCamp;
+	public static boolean userFound, passwordMatch, logout;
+	public static int choice = 0;
+	public static boolean isCampCommitteeMember = false;
+	public static boolean enteringFirstTime = true;
+	public static CampCommitteeMember comMem;
+	
+	public static List<Camp> allCamps = new ArrayList<>();
+	public static List<Camp> store = new ArrayList<>();
+	public static List<User> users = new ArrayList<>();
+	public static CampDataManager campDataManager = new CampDataManager();
+	public static UserDataManager userDataManager = new UserDataManager();
+	
+	
+	public static void main(String[] args) throws FileNotFoundException {
+		userDataManager.generateData("Student_List.txt", "Staff_List.txt");
+		//Check UserID & Password
+		while(true) {
+			System.out.println("Welcome to NTU CAMs!!!");
+            System.out.println("1. Login");
+            System.out.println("2. Exit");
+            int choiceToOpen = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 2);
+            switch (choiceToOpen) {
+            case 1:
+                login(users);
+                choice = 0;
+                break;
+            case 2:
+            	System.out.println("Goodbye!");
+                input.close();
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid choice. Try again.");
+                break;
+            }	
+		}
+	}
+	
+	public static void login(List<User> users) {
+		List<Camp> allCamps = CampDataManager.getAllCamps();
+		System.out.println("LOGIN CREDENTIALS");
+		User loginUser = User.getUsernamePassword(userDataManager);
+		logout = false;
+		if(loginUser.getFirstTimeLogin()) {
+			System.out.println("Please change your default password!!!");
+			String prompt = "Would you like to change it now?";
+			String selection = inputErrorChecking.getUserInput(prompt, "yesNoInput");
+			if(selection.equals("Y")) {
+				loginUser.changePassword();
+				logout = true;
+			}
+			loginUser.setFirstTimeLogin();
+		}
+		while(!logout) {
+			if(loginUser instanceof Student && ((Student) loginUser).getIsCampCommitteeMember()) {
+				Student student = ((Student) loginUser);
+				if(isCampCommitteeMember) {
+					while (!logout) {
+	                    campCommitteeMenu(student);
+	                }
+				}
+			}
+			else
+			{
+				loginUser.printMenu();
+				if(loginUser.getUserType() == UserType.STUDENT) {
+					choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 9);
+				}
+				else {
+					choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 5);
+				}
+				if(loginUser instanceof Student) {
+					Student student = ((Student) loginUser);
+					switch(choice) {
+					case 1: student.changePassword();
+						logout = true;
+						break;
+					case 2: student.viewAvailableCamps(allCamps);	
+						break;
+					case 3: isCampCommitteeMember = registerForCamps(student);
+						break;
+					case 4: Camp selectedCamp = student.enquiryPage(allCamps);
+						if(selectedCamp != null) {
+							student.enquiryAuthority(selectedCamp);
+						}
+						break;
+					case 5: student.viewCampRegistrationDetails();
+						break;
+					case 6: viewRepliesToInquiries(student, allCamps);
+		                break;
+					case 7: student.withdrawFromCamps();
+						break;
+					case 8:
+					    student.viewCampCommitteeStatus();
+					    break;	
+					case 9: System.out.println("Thank you!!!");
+						logout = true;
+					}
+				}
+				else if(loginUser instanceof Staff) {
+					Staff staff = ((Staff) loginUser);
+					switch(choice) {
+					case 1: staff.changePassword();
+						logout = true;
+						break;
+					case 2: CampSettings(staff);
+						break;
+					case 3: staff.displaySuggestionInbox();
+						break;
+					case 4: staff.viewAllCamps(allCamps);
+						break;
+					case 5: System.out.println("Thank you!!!");
+						logout = true;
+					}
+				}
+			}
+			
+		}
+	}
+	
+	public static CampCommitteeMember declareCommitteeMember(Student student) {
+		CampCommitteeMember comMem = new CampCommitteeMember(student.getName(), student.getEmail(), student.getFaculty(), student.getRegisteredCamps(), student.getStudentEnquiries(), student.getWithdrawnCamps());
+		return comMem;
+	}
+	
+	public static void campCommitteeMenu(Student student) {
+		List<Camp> allCamps = CampDataManager.getAllCamps();
+		if(student.getEnteringFirstTime()) {
+			comMem = declareCommitteeMember(student);
+			comMem.setCampCommitteeStatus(student);
+			comMem.setCommitteeCamp(student.getCampToConvertAsCommittee());
+			student.setEnteringFirstTime();
+		}
+		comMem.printMenu();
+		choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 10);
+
+		switch(choice) {
+		case 1: student.changePassword();
+			logout = true;
+			break;
+		case 2: 
+			comMem.viewAvailableCamps(allCamps);	
+			break;
+		case 3: isCampCommitteeMember = registerForCamps(comMem);
+			break;
+		case 4: Camp selectedCamp = comMem.enquiryPage(allCamps);
+			if(comMem.isCampCommitteeMember(selectedCamp)) {
+				System.out.println("Suggestion");
+				comMem.suggestionsAuthority(selectedCamp);
+			}
+			else {
+				System.out.println("Enquiry");
+				comMem.enquiryAuthority(selectedCamp);
+			}
+			break;
+		case 5: comMem.viewCampRegistrationDetails();
+			break;
+		case 6: viewRepliesToInquiries(comMem, allCamps);
+            break;
+		case 7: comMem.withdrawFromCamps();
+			break;
+		case 8:
+			comMem.viewCampCommitteeStatus();
+		    break;	
+		case 9: Camp camp = comMem.getCommitteeCamp();
+			if(camp == null)
+				System.out.println("Sorry, Havent registered for any camps as committee Member");
+			else {
+				System.out.println("1. Student Attendance Report");
+				System.out.println("2. Enquiries Submitted List");
+				String prompt = "Enter your choice:";
+				int selection = inputErrorChecking.getUserChoice(prompt, 1, 2);
+				if(selection == 1)
+					camp.generateStudentAttendanceReport();
+				else
+					camp.generateEnquiryReport();
+			}
+			break;
+		case 10: System.out.println("Thank you!!!");
+			logout = true;
+		}
+	}
+	
+	
+	public static void CampSettings(Staff staff) {
+		staff.CampSettings();
+		choice =  inputErrorChecking.getUserChoice("Enter your choice: ", 1, 5);
+		switch(choice) {
+		case 1: createCamp(staff);
+			break;
+		case 2:editCamp(staff);
+			break;
+		case 3: deleteCamp(staff);
+			break;
+		case 4: 
+			Camp selectedCamp = campListGenerate(staff);
+			if(selectedCamp != null) {
+				System.out.println("Choose the Report:");
+		        System.out.println("1. Camp Attendance Report");
+		        System.out.println("2. Committee Memberes Performance Report");
+		        System.out.println("3. Students Enquiry Report");
+		        int reportChoice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 3);
+		        if(reportChoice == 1)
+		        	selectedCamp.generateStudentAttendanceReport();
+		        else if(reportChoice == 2)
+		        	selectedCamp.generatePerformanceReport();
+		        else
+		        	selectedCamp.generateEnquiryReport();
+			}
+			break;
+		}
+	}
+	
+	public static void createCamp(Staff staff) {
+		//input.nextLine();
+		
+		String prompt = "Enter the name: ";
+		String campName = inputErrorChecking.getUserInput(prompt, "stringWithoutSplChar");
+		
+		prompt = "Enter the Opening Date (yyyy-mm-dd): ";
+		String openDate = inputErrorChecking.getUserInput(prompt, "date");
+		
+		prompt = "Enter the Closing Date (yyyy-mm-dd): ";
+		String closeDate = inputErrorChecking.getUserInput(prompt, "date");
+		
+		while(!checkCorrectDate(openDate, closeDate)) {
+			System.out.println("Sorry the closing date cannot be be before opeing date!!!");
+			prompt = "Enter the Closing Date (yyyy-mm-dd): ";
+			closeDate = inputErrorChecking.getUserInput(prompt, "date");
+		}
+		
+		prompt = "Enter the Registration Closing Date (yyyy-mm-dd): ";
+		String regCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+		
+		while(!checkCorrectDate(regCloseDate, closeDate)) {
+			System.out.println("Sorry the registration cannot be open after the camp ends!!!");
+			prompt = "Enter the Registration Closing Date (yyyy-mm-dd):";
+			regCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+		}
+		
+		boolean found = false;
+		CampAvailability campAccessible = CampAvailability.NTU;;
+		Schools campSchool = null;
+		while(!found) {
+			prompt = "Is the camp available to entire NTU(Y/N)";
+			String inp  = inputErrorChecking.getUserInput(prompt, "yesNoInput");
+			if(inp.equals("Y")) {
+				found = true;
+			}
+			else if(inp.equals("N")) {
+				campAccessible = CampAvailability.SCHOOL;
+				campSchool = staff.getFaculty();
+				found = true;
+			}
+//			else {
+//				System.out.println("Sorry invalid input. Try again!!!");
+//			}
+		}
+
+		prompt = "Enter the Location: ";
+		String location = inputErrorChecking.getUserInput(prompt, "stringWithoutSplChar");
+		
+		prompt = "Enter the Total Slots in this camp: ";
+		int totalSlots = inputErrorChecking.getUserInput(prompt, "int");
+		
+		boolean checkInput = false;
+		boolean visibility = true;
+		while(!checkInput) {
+			prompt = "Do you want the camp to be visible to students(Y/N): ";
+			String visbilityChoice = inputErrorChecking.getUserInput(prompt, "yesNoInput");
+			if(visbilityChoice.equals("Y")) {
+				visibility = true;
+				checkInput = true;
+			}
+			else if(visbilityChoice.equals("N")) {
+				visibility = false;
+				checkInput = true;
+			}	
+		}
+		
+		prompt = "Description: ";
+		String description = inputErrorChecking.getUserInput(prompt, "string");
+		
+		Staff staffIncharge = staff;
+		Camp camp = new Camp(campName, openDate, closeDate, regCloseDate, campAccessible, campSchool, location, totalSlots, description, staffIncharge, visibility);
+		staff.createCamp(camp, campDataManager);
+			
+	}
+	
+	public static void deleteCamp(Staff staff) {
+		List<String> campNames = staff.listCreatedCamps();
+		staff.viewCreatedCamps();
+		if(campNames != null && campNames.size() != 0) {
+			System.out.println("Which camp you want to delete:");
+			for(int i=0; i<staff.getNumberOfCamps(); i++) {
+				System.out.println("("+ (i+1) +") "+campNames.get(i));
+			}
+			choice = inputErrorChecking.getUserChoice("Enter your choice: ", 1, staff.getNumberOfCamps());
+			// Get camp to be deleted
+			Camp camp = staff.getCamp(choice - 1);
+			if(camp.getTotalSlots() == camp.getRemainingSlots()) {
+				staff.deleteCamp(camp, campDataManager);
+			}
+			else {
+				System.out.println("Sorry students have enrolled, so cannot delete the camp!!!");
+			}	
+		}
+	}
+	
+	 public static void editCamp(Staff staff) {
+		String prompt;
+	 	List<String> campNames = staff.listCreatedCamps();
+	 	if(campNames != null) {
+		 	staff.viewCreatedCamps();
+		 	if(campNames.size() != 0) {
+				for(int i=0; i<campNames.size(); i++) {
+					System.out.println("("+ (i+1) +") "+campNames.get(i));
+				}
+				prompt = "Which camp you want to Edit: ";
+				choice = inputErrorChecking.getUserChoice(prompt, 1, campNames.size());
+
+				int choice2 = 0;
+			 	while(choice2 != 10) {
+				 	Camp camp = staff.getCamp(choice-1);
+				 	camp.campMenu();
+					choice2 = inputErrorChecking.getUserChoice("Enter your choice: ", 1, 10);
+
+					switch(choice2) {
+						case 1: prompt = "Enter the new camp Name: ";
+							String newCampName = inputErrorChecking.getUserInput(prompt, "stringWithoutSplChar");
+							camp.setCampName(newCampName);
+							break;
+						case 2: 
+							prompt = "Enter the new Opening Date (yyyy-mm-dd): ";
+							String newOpenDate = inputErrorChecking.getUserInput(prompt, "date");
+							camp.setOpenDate(newOpenDate);
+							String newClosingDate = camp.getCloseDate();
+							while(!checkCorrectDate(newOpenDate, newClosingDate)) {
+								System.out.println("Sorry the opening date cannot be after closing date, so change the close date as well!!!");								
+								prompt = "Enter the Closing Date (yyyy-mm-dd):";
+								newClosingDate = inputErrorChecking.getUserInput(prompt, "date");
+								camp.setCloseDate(newClosingDate);
+							}
+							break;
+						case 3: prompt = "Enter the new Closing Date (yyyy-mm-dd): ";
+							String newCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+							while(!checkCorrectDate(camp.getOpenDate(), newCloseDate)) {
+								System.out.println("Sorry the closing date cannot be be before opeing date!!!");
+								System.out.print("Enter the Closing Date (yyyy-mm-dd):");
+								newCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+							}
+							while(!checkCorrectDate(camp.getRegCloseDate(), newCloseDate)) {
+							camp.setCloseDate(newCloseDate);
+							break;
+						case 4: prompt = "Enter the new Registration closing Date: ";
+							String newRegCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+							while(!checkCorrectDate(newRegCloseDate, camp.getCloseDate())) {
+								System.out.println("Sorry the registration cannot be open after the camp ends!!!");
+								System.out.print("Enter the Registration Closing Date (yyyy-mm-dd):");
+								newRegCloseDate = inputErrorChecking.getUserInput(prompt, "date");
+							}
+							camp.setRegCloseDate(newRegCloseDate);
+							break;
+						case 5: if(camp.getTotalSlots() != camp.getRemainingSlots())
+									System.out.println("Sorry you cannot change the CampSchool as people started registering...");
+							else {
+								if(camp.getCampAccessible() == CampAvailability.NTU) {
+									camp.setCampAccessible(CampAvailability.SCHOOL);
+									camp.setCampSchool(staff.getFaculty());
+									System.out.println("Camp availability is changed to "+ staff.getFaculty() + " school students only!!!");
+								}
+								else {
+									camp.setCampAccessible(CampAvailability.NTU);
+									System.out.println("Camp is now available to entire NTU");
+								}
+							}
+							break;
+						case 6: prompt = "Enter the new Total number of Slots: ";
+							int newTotalSlots = inputErrorChecking.getUserInput(prompt, "int");
+							while(newTotalSlots < (camp.getTotalSlots() - camp.getRemainingSlots())) {
+								System.out.println("Sorry there are already " + (camp.getTotalSlots() - camp.getRemainingSlots()) + " students enrolled, so you can only increase beyond it not less!!!");
+								newTotalSlots = inputErrorChecking.getUserInput(prompt, "int");
+							}
+							camp.setTotalSlots(newTotalSlots);
+							break;
+						case 7: prompt = "Enter the new Location: ";
+							String newLocation = inputErrorChecking.getUserInput(prompt, "stringWithoutSplChar");
+							camp.setlocation(newLocation);
+							break;
+						case 8: prompt = "Enter the new Description: ";
+							String newDescription = inputErrorChecking.getUserInput(prompt, "string");
+							camp.setDescription(newDescription);
+							break;
+						case 9: boolean checkInput = false;
+							while(!checkInput) {
+								
+								if(camp.getTotalSlots() == camp.getRemainingSlots()) {
+									prompt = "Do you want the camp to be visible to students(Y/N): ";
+									String visbilityChoice = inputErrorChecking.getUserInput(prompt, "yesNoInput");
+									if(visbilityChoice.equals("Y")) {
+										camp.setVisiblity(true);
+										checkInput = true;
+										System.out.println("Visibility changed succesfully!!!");
+										System.out.println("Camps are visibile to students now!");
+									}
+									else if(visbilityChoice.equals("N")) {
+										camp.setVisiblity(false);
+										checkInput = true;
+										System.out.println("Visibility changed succesfully!!!");
+										System.out.println("Camps are not visibile to students now");
+									}	
+								}
+								else {
+									System.out.println("Sorry students have enrolled, so visibility of the camp cannot be changed!!!");
+									checkInput = true;
+								}
+							}
+							break;
+						case 10:
+							break;
+					}
+			 	}
+		 	}
+	 	}
+	}
+	 
+	 public static boolean registerForCamps(User user) {
+		    if (user instanceof Student) {
+		        return ((Student) user).registerForCamp();
+		    } else if (user instanceof CampCommitteeMember) {
+		        return ((CampCommitteeMember) user).registerForCamp();
+		    }
+		    return false;
+		}
+	 
+	 
+	 public static void submitEnquiry(Student student, Camp selectedCamp) {
+            	String prompt = "Enter your inquiry for the camp: ";
+                String inquiryText = inputErrorChecking.getUserInput(prompt, "string");
+                Enquiry enquiry = new Enquiry(inquiryText, student);
+                student.submitEnquiry(selectedCamp, enquiry);
+                enquiry.setPostedBy(student);
+	   }
+	 
+	 public static void submitSuggestion(CampCommitteeMember comMem, Camp selectedCamp) {
+         	String prompt = "Enter your Suggestion for the camp: ";
+            String inputSuggestion = inputErrorChecking.getUserInput(prompt, "string");
+            Suggestion suggestion = new Suggestion(inputSuggestion, comMem);
+            selectedCamp.addSuggestion(suggestion);
+	                
+	   }
+	 
+	 public static void viewRepliesToInquiries(Student student, List<Camp> allCamps) {
+		    List<Camp> availableCamps = student.getAvailableCamps(allCamps);
+		    List<Enquiry> submittedEnquiries = student.getStudentEnquiries();
+
+		    // Check if there are available camps to inquire about
+		    if (submittedEnquiries.isEmpty()) {
+		        System.out.println("You havent submitted any enquiry");
+		        return;
+		    }
+
+		    // Display available camps
+		    boolean replyGiven = false;
+		    System.out.println("Enquiries Submitted:");
+		    for (int i = 0; i < submittedEnquiries.size(); i++) {
+		    	System.out.println((i + 1) + ". " + submittedEnquiries.get(i).getQuestion());
+		    	if(submittedEnquiries.get(i).getResponse() != null) {
+		    		replyGiven = true;
+		    		System.out.println("Reply: " + submittedEnquiries.get(i).getResponse());
+		    	}
+		    }
+		    if(!replyGiven) {
+		    	System.out.println("No replies given yet!!!");
+		    }
+
+	}
+	public static Camp campListGenerate(Staff staff) {
+		// TODO Auto-generated method stub
+		List<Camp> createdCamps = staff.getCreatedCamps();
+		staff.viewCreatedCamps();
+		if(createdCamps.isEmpty()) {
+			System.out.println("Sorry havent created any camps!!!");
+			return null;
+		}
+		else {
+			System.out.println("Created Camps:");
+            for (int i = 0; i < createdCamps.size(); i++) {
+                System.out.println((i + 1) + ". " + createdCamps.get(i).getCampName());
+            }
+			Camp selectedCamp = null;
+            boolean correctChoice = false;
+            while(!correctChoice) {
+            	int campChoice = inputErrorChecking.getUserChoice("Enter the camp number: ", 1, createdCamps.size());
+	        	correctChoice = true;
+	            selectedCamp = createdCamps.get(campChoice - 1);        
+        	}
+            return selectedCamp;
+		}
+	}
+	
+	public static boolean checkCorrectDate(String startDate, String endDate) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Date startingDate = dateFormat.parse(startDate);
+			Date closingDate = dateFormat.parse(endDate);
+			
+			if(closingDate.before(startingDate))
+				return false;	
+				
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+
+}
